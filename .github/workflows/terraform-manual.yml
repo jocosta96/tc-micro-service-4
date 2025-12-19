@@ -104,8 +104,8 @@ jobs:
         if: github.event.inputs.action == 'apply' && github.ref == 'refs/heads/main'
         run: |
           echo "🚀 Manual apply on main branch"
-          echo "Branch: ${{ env.GH_REF_NAME }}"
-          echo "Triggered by: ${{ env.GH_ACTOR }}"
+          echo "Branch: $GH_REF_NAME"
+          echo "Triggered by: $GH_ACTOR"
           if [ "${{ github.event.inputs.auto_approve }}" = "true" ]; then
             terraform apply -auto-approve
           else
