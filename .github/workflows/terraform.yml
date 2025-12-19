@@ -18,6 +18,8 @@ on:
 
 env:
   TF_VERSION: "1.14.1"
+  GH_ACTOR: ${{ github.actor }}
+  GH_EVENT_NAME: ${{ github.event_name }}
 
 jobs:
   terraform:
@@ -39,12 +41,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -122,7 +124,7 @@ jobs:
             ${process.env.PLAN || 'No changes. Infrastructure is up-to-date.'}
             \`\`\`
             
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            *Pusher: @${{ env.GH_ACTOR }}, Action: \`${{ env.GH_EVENT_NAME }}\`*`;
             
             github.rest.issues.createComment({
               issue_number: context.issue.number,
