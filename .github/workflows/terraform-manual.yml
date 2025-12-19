@@ -1,0 +1,155 @@
+name: "Terraform Manual"
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform action to perform'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+      auto_approve:
+        description: 'Auto approve changes'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  TF_VERSION: "1.14.1"
+
+jobs:
+  terraform-manual:
+    name: "Terraform Manual - ${{ github.event.inputs.action }}"
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          role-duration-seconds: 3600
+
+      - name: Verify AWS Credentials
+        run: |
+          echo "Testing AWS credentials..."
+          aws sts get-caller-identity
+          echo "AWS credentials are valid!"
+
+      - name: Clean Terraform Cache
+        run: |
+          echo "Cleaning Terraform cache and provider state..."
+          rm -rf .terraform
+          rm -f .terraform.lock.hcl
+          rm -rf ~/.terraform.d/plugin-cache
+          find . -name "*.tfstate*" -not -path "./.terraform/*" -delete || true
+          echo "Complete cache cleanup finished"
+
+      - name: Terraform Init
+        run: |
+          echo "Initializing Terraform with forced provider download..."
+          terraform init -upgrade -reconfigure
+          echo "Verifying provider installation..."
+          terraform providers
+          echo "Verifying backend configuration..."
+          terraform workspace show
+          echo "Terraform initialized successfully"
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        if: github.event.inputs.action == 'plan'
+        run: terraform plan -detailed-exitcode
+
+      - name: Verify Main Branch for Apply
+        if: github.event.inputs.action == 'apply'
+        run: |
+          if [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            echo "❌ CRITICAL ERROR: Manual apply attempted on non-main branch!"
+            echo "Current branch: ${{ github.ref_name }}"
+            echo "Apply is ONLY allowed on main branch"
+            echo "Please merge to main branch first"
+            exit 1
+          fi
+          echo "✅ Verified: Manual apply on main branch"
+
+      - name: Terraform Apply (Main Branch Only)
+        if: github.event.inputs.action == 'apply' && github.ref == 'refs/heads/main'
+        run: |
+          echo "🚀 Manual apply on main branch"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Triggered by: ${{ github.actor }}"
+          if [ "${{ github.event.inputs.auto_approve }}" = "true" ]; then
+            terraform apply -auto-approve
+          else
+            terraform apply
+          fi
+
+      - name: Terraform Apply - Branch Restriction
+        if: github.event.inputs.action == 'apply' && github.ref != 'refs/heads/main'
+        run: |
+          echo "❌ ERROR: Terraform apply is only allowed from the main branch!"
+          echo "Current branch: ${{ github.ref_name }}"
+          echo "Please merge your changes to main branch first."
+          exit 1
+
+      - name: Verify Main Branch for Destroy
+        if: github.event.inputs.action == 'destroy'
+        run: |
+          if [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            echo "❌ CRITICAL ERROR: Manual destroy attempted on non-main branch!"
+            echo "Current branch: ${{ github.ref_name }}"
+            echo "Destroy is ONLY allowed on main branch"
+            echo "Please merge to main branch first"
+            exit 1
+          fi
+          echo "✅ Verified: Manual destroy on main branch"
+
+      - name: Terraform Destroy (Main Branch Only)
+        if: github.event.inputs.action == 'destroy' && github.ref == 'refs/heads/main'
+        run: |
+          echo "🚨 Manual destroy on main branch"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Triggered by: ${{ github.actor }}"
+          if [ "${{ github.event.inputs.auto_approve }}" = "true" ]; then
+            terraform destroy -auto-approve
+          else
+            terraform destroy
+          fi
+
+      - name: Terraform Destroy - Branch Restriction
+        if: github.event.inputs.action == 'destroy' && github.ref != 'refs/heads/main'
+        run: |
+          echo "❌ ERROR: Terraform destroy is only allowed from the main branch!"
+          echo "Current branch: ${{ github.ref_name }}"
+          echo "Please merge your changes to main branch first."
+          exit 1
+
+      - name: Output Results
+        run: |
+          echo "Terraform ${{ github.event.inputs.action }} completed successfully"
+          echo "Triggered by: ${{ github.actor }}" 
