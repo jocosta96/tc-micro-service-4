@@ -59,3 +59,88 @@ jobs:
           role-duration-seconds: 3600
 
       - name: Verify AWS Credentials
+        run: |
+          echo "Testing AWS credentials..."
+          aws sts get-caller-identity
+          echo "AWS credentials are valid!"
+
+      - name: Debug Terraform Variables
+        run: |
+          echo "=== All TF_VAR Environment Variables ==="
+          env | grep TF_VAR | sort || echo "❌ No TF_VAR variables found!"
+          echo ""
+          if [ -z "$TF_VAR_BACKEND_S3_BUCKET_NAME" ]; then
+            echo "❌ BACKEND_S3_BUCKET_NAME is not set!"
+          else
+            echo "✅ BACKEND_S3_BUCKET_NAME is set"
+          fi
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Clean Terraform Cache
+        run: |
+          echo "Cleaning Terraform cache and provider state..."
+          rm -rf .terraform
+          rm -f .terraform.lock.hcl
+          rm -rf ~/.terraform.d/plugin-cache
+          find . -name "*.tfstate*" -not -path "./.terraform/*" -delete || true
+          find /tmp -name "*terraform*" -type d -exec rm -rf {} + 2>/dev/null || true
+          echo "Complete cache cleanup finished"
+
+      - name: Terraform Init
+        run: |
+          echo "Initializing Terraform with forced provider download..."
+          terraform init -upgrade -reconfigure
+          terraform providers
+          terraform workspace show
+          cat .terraform.lock.hcl
+          echo "Terraform initialized successfully"
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color
+        continue-on-error: true
+
+      - name: Update Pull Request
+        uses: actions/github-script@v7
+        if: env.GH_EVENT_NAME == 'pull_request'
+        env:
+          PLAN: "${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Plan 📝
+            \`\`\`
+            ${process.env.PLAN || 'No changes. Infrastructure is up-to-date.'}
+            \`\`\`
+
+            *Pusher: @${process.env.GH_ACTOR}, Action: \`${process.env.GH_EVENT_NAME}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      - name: Verify Main Branch
+        if: env.GH_EVENT_NAME == 'push'
+        run: |
+          if [ "$GH_REF" != "refs/heads/main" ]; then
+            echo "❌ CRITICAL ERROR: Apply attempted on non-main branch!"
+            echo "Current branch: $GH_REF_NAME"
+            exit 1
+          fi
+          echo "✅ Verified: Running on main branch"
+
+      - name: Terraform Apply (Main Branch Only)
+        if: env.GH_EVENT_NAME == 'push' && env.GH_REF == 'refs/heads/main'
+        run: |
+          echo "🚀 Applying Terraform changes on main branch"
+          echo "Branch: $GH_REF_NAME"
+          echo "Event: $GH_EVENT_NAME"
+          terraform apply -auto-approve
