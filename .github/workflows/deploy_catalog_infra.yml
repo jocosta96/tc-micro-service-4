@@ -1,20 +1,20 @@
-name: "Terraform"
+name: "catalog-microservice-infra"
 
 on:
   push:
     branches:
       - main
     paths:
-      - '*.tf'
-      - '*.tfvars'
-      - '.github/workflows/terraform.yml'
+      - 'modules/*.tf'
+      - 'services/catalog/*.tf'
+      - '.github/workflows/deploy_catalog_infra.yml'
   pull_request:
     branches:
       - main
     paths:
-      - '*.tf'
-      - '*.tfvars'
-      - '.github/workflows/terraform.yml'
+      - 'modules/*.tf'
+      - 'services/catalog/*.tf'
+      - '.github/workflows/deploy_catalog_infra.yml'
 
 env:
   TF_VERSION: "1.14.1"
@@ -38,7 +38,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: .
+        working-directory: ./services/catalog
 
     steps:
       - name: Checkout
