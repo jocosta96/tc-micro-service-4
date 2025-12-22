@@ -21,12 +21,12 @@ data "aws_partition" "current" {}
 # This role typically has broad permissions needed for educational purposes
 # Role ARNs now managed in centralized locals.tf
 
-  
+
 # IAM role ARNs for EKS cluster and node groups
 locals {
 
-    cluster_role_arn    = data.aws_iam_role.lab_role.arn
-    node_group_role_arn = data.aws_iam_role.lab_role.arn
+  cluster_role_arn    = data.aws_iam_role.lab_role.arn
+  node_group_role_arn = data.aws_iam_role.lab_role.arn
 
 }
 

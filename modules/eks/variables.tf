@@ -1,5 +1,5 @@
 variable "service" {
-  type = string
+  type    = string
   default = ""
 }
 

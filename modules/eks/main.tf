@@ -1,9 +1,9 @@
 # EKS tags now managed in centralized locals.tf
 
 locals {
-    eks_tags = {
-        origin = "tc-micro-service-4/modules/eks/main.tf"
-    }
+  eks_tags = {
+    origin = "tc-micro-service-4/modules/eks/main.tf"
+  }
 }
 
 resource "aws_eks_cluster" "ordering_eks_cluster" {

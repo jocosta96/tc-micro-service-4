@@ -1,8 +1,8 @@
 locals {
 
   default_tags = {
-    project     = "ordering-system"
-    created_by  = "terraform"
+    project    = "ordering-system"
+    created_by = "terraform"
   }
 
 }

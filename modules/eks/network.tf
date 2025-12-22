@@ -1,7 +1,7 @@
 locals {
-    network_tags = {
-        origin = "tc-micro-service-4/modules/eks/network.tf"
-    }
+  network_tags = {
+    origin = "tc-micro-service-4/modules/eks/network.tf"
+  }
 }
 
 
@@ -12,7 +12,7 @@ resource "aws_security_group" "ordering_eks_cluster_sg" {
   name_prefix = "${var.service}-eks-cluster-"
   vpc_id      = var.VPC_ID
 
-  tags = merge(local.network_tags, {name = "${var.service}-eks-cluster-sg"})
+  tags = merge(local.network_tags, { name = "${var.service}-eks-cluster-sg" })
 }
 
 # Allow HTTPS access to EKS API server (development environments)
@@ -25,7 +25,7 @@ resource "aws_vpc_security_group_ingress_rule" "eks_api_server_development" {
   ip_protocol       = "tcp"
   to_port           = 443
 
-  tags = merge(local.network_tags, {name = "${var.service}-eks-api-development"})
+  tags = merge(local.network_tags, { name = "${var.service}-eks-api-development" })
 }
 
 # Allow traffic from worker nodes
@@ -36,7 +36,7 @@ resource "aws_vpc_security_group_ingress_rule" "eks_cluster_ingress_node_https" 
   ip_protocol                  = "tcp"
   to_port                      = 443
 
-  tags = merge(local.network_tags, {name = "${var.service}-eks-cluster-from-nodes"})
+  tags = merge(local.network_tags, { name = "${var.service}-eks-cluster-from-nodes" })
 }
 
 # EKS Worker Node Security Group
@@ -44,7 +44,7 @@ resource "aws_security_group" "ordering_eks_node_sg" {
   name_prefix = "${var.service}-eks-node-"
   vpc_id      = var.VPC_ID
 
-  tags = merge(local.network_tags, {name = "${var.service}-eks-node-sg"})
+  tags = merge(local.network_tags, { name = "${var.service}-eks-node-sg" })
 }
 
 # Allow worker nodes to communicate with cluster API server
@@ -55,7 +55,7 @@ resource "aws_vpc_security_group_ingress_rule" "eks_node_ingress_cluster" {
   ip_protocol                  = "tcp"
   to_port                      = 65535
 
-  tags = merge(local.network_tags, {name = "${var.service}-node-from-cluster"})
+  tags = merge(local.network_tags, { name = "${var.service}-node-from-cluster" })
 }
 
 # Allow worker nodes to communicate with each other
@@ -64,7 +64,7 @@ resource "aws_vpc_security_group_ingress_rule" "eks_node_ingress_self" {
   referenced_security_group_id = aws_security_group.ordering_eks_node_sg.id
   ip_protocol                  = "-1"
 
-  tags = merge(local.network_tags, {name = "${var.service}-node-to-node"})
+  tags = merge(local.network_tags, { name = "${var.service}-node-to-node" })
 }
 
 # Allow HTTP/HTTPS from Load Balancer (for app access)
@@ -75,7 +75,7 @@ resource "aws_vpc_security_group_ingress_rule" "eks_node_ingress_http" {
   ip_protocol       = "tcp"
   to_port           = 32767
 
-  tags = merge(local.network_tags, {name = "${var.service}-node-app-access"})
+  tags = merge(local.network_tags, { name = "${var.service}-node-app-access" })
 }
 
 # Egress rules - Allow all outbound traffic
@@ -84,7 +84,7 @@ resource "aws_vpc_security_group_egress_rule" "eks_cluster_egress" {
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 
-  tags = merge(local.network_tags, {name = "${var.service}-cluster-egress"})
+  tags = merge(local.network_tags, { name = "${var.service}-cluster-egress" })
 }
 
 resource "aws_vpc_security_group_egress_rule" "eks_node_egress" {
@@ -92,5 +92,5 @@ resource "aws_vpc_security_group_egress_rule" "eks_node_egress" {
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 
-  tags = merge(local.network_tags, {name = "${var.service}-node-egress"})
+  tags = merge(local.network_tags, { name = "${var.service}-node-egress" })
 }
