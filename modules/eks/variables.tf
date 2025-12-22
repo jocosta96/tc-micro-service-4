@@ -27,3 +27,14 @@ variable "SUBNET_IDS" {
   type        = list(string)
   default     = []
 }
+
+variable "DEFAULT_REGION" {
+  description = "The default region for the EKS service."
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "K8S_NAMESPACE" {
+  type = string
+  default = "default"
+}

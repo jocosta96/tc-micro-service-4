@@ -1,21 +1,17 @@
-output "http_api_id" {
-  description = "ID of the created HTTP API."
-  value       = aws_apigatewayv2_api.http_api.id
+output "rest_api_id" {
+  value = aws_api_gateway_rest_api.api.id
 }
 
-output "http_api_execution_arn" {
-  description = "Execution ARN of the HTTP API."
-  value       = aws_apigatewayv2_api.http_api.execution_arn
+output "proxy_id" {
+  value = aws_api_gateway_resource.proxy.id
 }
 
-output "http_api_invoke_url" {
-  description = "Base invoke URL of the HTTP API default stage."
-  value       = aws_apigatewayv2_api.http_api.api_endpoint
+output "proxy_http_method" {
+  value = aws_api_gateway_method.proxy.http_method
 }
 
-output "lambda_authorizer_arn" {
-  description = "ARN of the Lambda authorizer function."
-  value       = aws_lambda_function.authorizer.arn
+output "invoke_url" {
+  value = "${aws_api_gateway_stage.api_stage.invoke_url}"
+  description = "Invoke URL for the API Gateway stage"
+  # Note: aws_api_gateway_stage.invoke_url is only populated in newer provider versions; callers can also construct URL from rest_api id and stage.
 }
-
-

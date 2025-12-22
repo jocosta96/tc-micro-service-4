@@ -44,4 +44,3 @@ resource "aws_eks_access_policy_association" "ordering_eks_access_policy_associa
 
   depends_on = [aws_eks_access_entry.ordering_eks_access_entry_voclabs]
 }
-

@@ -19,24 +19,24 @@ module "catalog_eks" {
   SUBNET_IDS          = module.catalog_network.service_subnet_ids
 }
 
-# API Gateway + Lambda authorizer as the single internet entrypoint to the catalog EKS service.
-# NOTE: integration_uri should typically be the ARN of an internal NLB listener that fronts the catalog ingress.
+
+
 module "catalog_api_gateway" {
   source = "../../modules/api_gateway"
 
   service = "catalog"
   region  = var.DEFAULT_REGION
 
-  # Shared secret token evaluated by the Lambda authorizer.
-  authorizer_token = "REPLACE_ME_WITH_STRONG_TOKEN"
+  depends_on = [ module.catalog_eks ]
 
-  # Use the same private subnets as the EKS worker nodes for the VPC Link,
-  # so API Gateway can reach the internal NLB/ALB that frontends the catalog service.
-  vpc_link_subnet_ids = module.catalog_network.service_subnet_ids
+}
 
-  # Optionally attach extra SGs to the VPC link ENIs if needed.
-  vpc_link_security_group_ids = []
+module "catalog_k8s" {
+  source = "../../modules/k8s"
 
-  # ARN of the NLB listener that routes to the catalog service inside the cluster.
-  integration_uri = "arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/net/catalog-nlb/REPLACE_ME/REPLACE_ME"
+  service        = "catalog"
+  DEFAULT_REGION = var.DEFAULT_REGION
+  cluster_name   = module.catalog_eks.name
+  node_group_name = module.catalog_eks.node_group_name
+
 }
