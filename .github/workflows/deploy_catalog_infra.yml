@@ -142,5 +142,5 @@ jobs:
         run: |
           echo "🚀 Applying Terraform changes on main branch"
           echo "Branch: $GH_REF_NAME"
-          echo "Event: $GH_EVENT_NAME"
+          printf "Event: %s\n" "${GH_EVENT_NAME}"
           terraform apply -auto-approve
