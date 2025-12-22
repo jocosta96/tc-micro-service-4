@@ -32,10 +32,10 @@ resource "aws_route_table" "ordering_route_table" {
     cidr_block = aws_vpc.ordering_vpc.cidr_block
     gateway_id = "local"
   }
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.ordering_igw.id
-  }
+#  route {
+#    cidr_block = "0.0.0.0/0"
+#    gateway_id = aws_internet_gateway.ordering_igw.id
+#  }
 }
 
 resource "aws_route_table_association" "ordering_route_table_association" {
