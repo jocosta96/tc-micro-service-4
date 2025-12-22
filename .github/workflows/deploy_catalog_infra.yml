@@ -132,7 +132,7 @@ jobs:
         run: |
           if [ "$GH_REF" != "refs/heads/main" ]; then
             echo "❌ CRITICAL ERROR: Apply attempted on non-main branch!"
-            echo "Current branch: $GH_REF_NAME"
+          printf "Current branch: %s\n" "${GH_REF_NAME}"
             exit 1
           fi
           echo "✅ Verified: Running on main branch"
