@@ -1,0 +1,58 @@
+name: "tc-ordering-state-bucket"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  backend-bucket:
+    name: "Backend State Bucket"
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+      actions: read
+      id-token: write
+
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          role-duration-seconds: 3600
+
+      - name: Verify AWS Credentials
+        run: |
+          echo "Testing AWS credentials..."
+          aws sts get-caller-identity
+          echo "AWS credentials are valid!"
+
+      - name: Create S3 bucket if it doesn't exist
+        run: |
+          BUCKET_NAME="tc-ordering-state-bucket"
+          REGION="us-east-1"
+
+          # Check if the bucket exists using s3api head-bucket
+          if aws s3 api head-bucket --bucket "$BUCKET_NAME" >/dev/null 2>&1; then
+            echo "S3 bucket '$BUCKET_NAME' already exists. Skipping creation."
+          else
+            echo "S3 bucket '$BUCKET_NAME' does not exist. Creating it now."
+            # The 's3 mb' command is simpler for creation than 's3api create-bucket'
+            aws s3 mb s3://"$BUCKET_NAME" --region "$REGION"
+            echo "S3 bucket '$BUCKET_NAME' created successfully."
+          fi
