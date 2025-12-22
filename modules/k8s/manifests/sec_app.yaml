@@ -4,5 +4,5 @@ metadata:
   name: "${sec_name}"
 type: Opaque
 data:
-  API_USER: b3JkZXJpbmc=
-  API_PWD: b3JkZXJpbmc=
+  API_USER: "${api_user_base64}"
+  API_PWD: "${api_password_base64}"

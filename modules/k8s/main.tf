@@ -1,17 +1,5 @@
 # manifests deployment tags now managed in centralized locals.tf
 
-# Wait for EKS cluster to be fully ready including EBS CSI driver
-resource "null_resource" "eks_cluster_ready" {
-
-  provisioner "local-exec" {
-    command = "aws eks wait cluster-active --region ${var.DEFAULT_REGION} --name ${var.cluster_name}"
-  }
-
-  provisioner "local-exec" {
-    command = "aws eks wait nodegroup-active --region ${var.DEFAULT_REGION} --cluster-name ${var.cluster_name} --nodegroup-name ${var.node_group_name}"
-  }
-}
-
 # =============================================================================
 # PHASE 1: CONFIGMAPS (Deploy configuration first)
 # =============================================================================
@@ -30,11 +18,26 @@ resource "kubectl_manifest" "database_config" {
 # PHASE 2: SECRETS (Deploy sensitive configuration)
 # =============================================================================
 
+resource "random_password" "basic_auth_password" {
+  length  = 16
+  special = true
+}
+
+resource "aws_ssm_parameter" "valid_token_ssm" {
+  name        = "/ordering-system/${var.service}/basic_auth/token"
+  description = "Valid token for integration"
+  type        = "SecureString"
+  value       = random_password.basic_auth_password.result
+}
+
+
 # Application Secret
 resource "kubectl_manifest" "app_secret" {
   yaml_body = templatefile(
     "${path.module}/manifests/sec_app.yaml", {
       sec_name        = "sec-app-${var.service}",
+      api_user_base64 = base64encode("ordering"),
+      api_password_base64 = base64encode(random_password.basic_auth_password.result)
     }
   )
 
@@ -42,8 +45,6 @@ resource "kubectl_manifest" "app_secret" {
     kubectl_manifest.database_config
   ]
 }
-
-
 
 # =============================================================================
 # PHASE 3: SYSTEM COMPONENTS (Deploy cluster-wide services)

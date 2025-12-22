@@ -1,5 +1,5 @@
 import os
-    
+
 def lambda_handler(event, context):
     token = event.get('authorizationToken')
     method_arn = event.get('methodArn')

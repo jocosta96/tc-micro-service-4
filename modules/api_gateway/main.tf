@@ -59,6 +59,10 @@ resource "aws_lambda_function" "authorizer" {
   runtime          = "python3.9"
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 
+  tracing_config {
+    mode = "Active"
+  }
+
   environment {
     variables = {
       TOKEN = random_password.valid_token.result
