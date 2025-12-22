@@ -141,6 +141,6 @@ jobs:
         if: env.GH_EVENT_NAME == 'push' && env.GH_REF == 'refs/heads/main'
         run: |
           echo "🚀 Applying Terraform changes on main branch"
-          echo "Branch: $GH_REF_NAME"
+          printf "Branch: %s\n" "${GH_REF_NAME}"
           printf "Event: %s\n" "${GH_EVENT_NAME}"
           terraform apply -auto-approve
