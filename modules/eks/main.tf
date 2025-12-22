@@ -9,7 +9,7 @@ locals {
 resource "aws_eks_cluster" "ordering_eks_cluster" {
 
   name     = "${var.service}-eks-cluster"
-  version  = "1.31"
+  version  = "1.34"
   role_arn = local.cluster_role_arn
 
   access_config {
