@@ -16,7 +16,7 @@ resource "aws_subnet" "ordering_subnet" {
   count                   = var.SUBNET_COUNT
   vpc_id                  = aws_vpc.ordering_vpc.id
   cidr_block              = cidrsubnet(var.VPC_CIDR_BLOCK, 4, count.index)
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
   availability_zone       = var.AVAILABILITY_ZONES[count.index]
 }
 
