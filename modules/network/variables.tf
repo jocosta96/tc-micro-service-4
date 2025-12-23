@@ -44,3 +44,7 @@ variable "PRIVATE_SUBNET_CIDR_BLOCK_BASE" {
   type        = number
   default     = 48
 }
+
+variable "service" {
+  type = string
+}

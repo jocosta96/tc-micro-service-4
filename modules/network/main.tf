@@ -26,6 +26,21 @@ resource "aws_subnet" "ordering_subnet" {
   availability_zone       = var.AVAILABILITY_ZONES[count.index]
 }
 
+resource "aws_subnet" "database_subnet" {
+  tags              = local.network_tags
+  count             = 2
+  vpc_id            = aws_vpc.ordering_vpc.id
+  cidr_block        = cidrsubnet(var.VPC_CIDR_BLOCK, 4, 15 - count.index) #total subnets is 16, going on reversal order
+  availability_zone = var.AVAILABILITY_ZONES[count.index]
+}
+
+resource "aws_db_subnet_group" "ordering_data_subnet_group" {
+  name       = "${var.service}-subnet-group"
+  subnet_ids = aws_subnet.database_subnet[*].id
+
+  tags = local.network_tags
+}
+
 resource "aws_internet_gateway" "ordering_igw" {
   tags   = local.network_tags
   vpc_id = aws_vpc.ordering_vpc.id
