@@ -16,45 +16,10 @@ data "archive_file" "lambda_zip" {
   output_path = "${path.module}/lambda_authorizer.zip"
 }
 
-resource "aws_iam_role" "lambda_role" {
-  name = "api-authorizer-role-${var.service}"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy" "lambda_logs" {
-  name   = "api-authorizer-logs-${var.service}"
-  role   = aws_iam_role.lambda_role.id
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ]
-        Effect   = "Allow"
-        Resource = "arn:aws:logs:*:*:*"
-      }
-    ]
-  })
-}
-
 resource "aws_lambda_function" "authorizer" {
   filename         = data.archive_file.lambda_zip.output_path
   function_name    = "api-authorizer-${var.service}"
-  role             = aws_iam_role.lambda_role.arn
+  role             = data.aws_iam_role.lambda_role.arn
   handler          = "lambda_authorizer.lambda_handler"
   runtime          = "python3.9"
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256

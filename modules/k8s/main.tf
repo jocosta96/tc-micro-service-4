@@ -51,9 +51,16 @@ resource "kubectl_manifest" "app_secret" {
 # =============================================================================
 
 # Metrics Server Configuration
+
+# Fetch metrics-server components directly from the release URL instead of
+# bundling a copy of the YAML in the module.
+data "http" "metrics_components" {
+  url = "https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.7.2/components.yaml"
+}
+
 resource "kubectl_manifest" "metrics_config" {
 
-  yaml_body = file("${path.module}/manifests/metrics.yaml")
+  yaml_body = data.http.metrics_components.body
 
   depends_on = [
     kubectl_manifest.app_secret,

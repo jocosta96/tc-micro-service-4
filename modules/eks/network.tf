@@ -4,6 +4,15 @@ locals {
   }
 }
 
+# Detect public IP of the operator to restrict control-plane access during development/deploy
+data "http" "my_ip" {
+  url = "https://checkip.amazonaws.com"
+}
+
+locals {
+  deployer_cidr = "${chomp(data.http.my_ip.body)}/32"
+}
+
 
 # ===== SECURITY GROUPS =====
 
@@ -20,7 +29,7 @@ resource "aws_vpc_security_group_ingress_rule" "eks_api_server_development" {
   count = var.allow_public_access ? 1 : 0
 
   security_group_id = aws_security_group.ordering_eks_cluster_sg.id
-  cidr_ipv4         = "0.0.0.0/0"
+  cidr_ipv4         = local.deployer_cidr
   from_port         = 443
   ip_protocol       = "tcp"
   to_port           = 443
