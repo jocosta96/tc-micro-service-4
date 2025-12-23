@@ -26,7 +26,6 @@ resource "aws_security_group" "ordering_eks_cluster_sg" {
 
 # Allow HTTPS access to EKS API server (development environments)
 resource "aws_vpc_security_group_ingress_rule" "eks_api_server_development" {
-  count = var.allow_public_access ? 1 : 0
 
   security_group_id = aws_security_group.ordering_eks_cluster_sg.id
   cidr_ipv4         = local.deployer_cidr

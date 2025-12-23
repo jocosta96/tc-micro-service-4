@@ -38,3 +38,26 @@ variable "K8S_NAMESPACE" {
   type = string
   default = "default"
 }
+
+variable "NODE_INSTANCE_TYPE" {
+  type = string
+  default = "t3.medium"
+}
+
+variable "NODE_AMI_TYPE" {
+  type    = string
+  default = "AL2023_x86_64_STANDARD"
+}
+
+variable "SCALING_CONFIG" {
+  type = object({
+    desired_size = number
+    max_size     = number
+    min_size     = number
+  })
+  default = {
+    desired_size = 1
+    max_size     = 3
+    min_size     = 1
+  }
+}

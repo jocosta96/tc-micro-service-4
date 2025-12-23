@@ -17,6 +17,13 @@ module "catalog_eks" {
   allow_public_access = false
   VPC_ID              = module.catalog_network.service_vpc_id
   SUBNET_IDS          = module.catalog_network.service_subnet_ids
+  NODE_AMI_TYPE       = "BOTTLEROCKET_x86_64" #faster than default one
+  NODE_INSTANCE_TYPE  = "t3.small"
+  SCALING_CONFIG = {
+    desired_size = 1
+    max_size     = 3
+    min_size     = 1
+  }
 }
 
 

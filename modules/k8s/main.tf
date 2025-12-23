@@ -98,3 +98,22 @@ resource "kubectl_manifest" "app_hpa" {
   ]
 }
 
+resource "kubectl_manifest" "app_deployment" {
+
+  yaml_body = templatefile(
+    "${path.module}/manifests/dpm_app.yaml", {
+      dpm_name            = "dpm-${var.service}",
+      dpm_image           = "jocosta96/soat-challenge"#"jocosta96/${var.service}-microservice:latest",
+      app_sec_name        = "sec-app-${var.service}",
+      cfm_name            = "cfm-database-${var.service}"
+    }
+  )
+
+  depends_on = [
+    kubectl_manifest.app_service,
+    kubectl_manifest.app_secret,
+    kubectl_manifest.database_config,
+    kubectl_manifest.app_hpa,
+  ]
+
+}

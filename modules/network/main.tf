@@ -1,6 +1,12 @@
+# Detect public IP of the operator to restrict control-plane access during development/deploy
+data "http" "my_ip" {
+  url = "https://checkip.amazonaws.com"
+}
+
 locals {
   network_tags = {
     origin = "tc-micro-service-4/modules/network/main.tf"
+    deployer_cidr = "${chomp(data.http.my_ip.body)}/32"
   }
 }
 
@@ -16,7 +22,7 @@ resource "aws_subnet" "ordering_subnet" {
   count                   = var.SUBNET_COUNT
   vpc_id                  = aws_vpc.ordering_vpc.id
   cidr_block              = cidrsubnet(var.VPC_CIDR_BLOCK, 4, count.index)
-  map_public_ip_on_launch = false
+  map_public_ip_on_launch = true
   availability_zone       = var.AVAILABILITY_ZONES[count.index]
 }
 
@@ -32,10 +38,10 @@ resource "aws_route_table" "ordering_route_table" {
     cidr_block = aws_vpc.ordering_vpc.cidr_block
     gateway_id = "local"
   }
-#  route {
-#    cidr_block = "0.0.0.0/0"
-#    gateway_id = aws_internet_gateway.ordering_igw.id
-#  }
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.ordering_igw.id
+  }
 }
 
 resource "aws_route_table_association" "ordering_route_table_association" {

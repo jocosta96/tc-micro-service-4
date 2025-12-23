@@ -20,8 +20,8 @@ resource "aws_eks_cluster" "ordering_eks_cluster" {
     subnet_ids              = var.SUBNET_IDS
     security_group_ids      = [aws_security_group.ordering_eks_cluster_sg.id]
     endpoint_private_access = true
-    endpoint_public_access  = var.allow_public_access ? true : false
-    public_access_cidrs     = var.allow_public_access ? ["0.0.0.0/0"] : []
+    endpoint_public_access  = true
+    public_access_cidrs     = [local.deployer_cidr]
   }
 
   tags = local.eks_tags
@@ -37,17 +37,15 @@ resource "aws_eks_node_group" "ordering_eks_node_group" {
   node_group_name = "${var.service}-eks-node-group"
   node_role_arn   = local.node_group_role_arn
   subnet_ids      = var.SUBNET_IDS
-  instance_types  = ["t3.small"] # Mudança: t3.small em vez de t2.micro
+  instance_types  = [var.NODE_INSTANCE_TYPE] # Mudança: t3.small em vez de t2.micro
   capacity_type   = "ON_DEMAND"  # Mudança: ON_DEMAND em vez de SPOT
   disk_size       = 20
-  ami_type        = "AL2023_x86_64_STANDARD" # Especificar AMI type explicitamente
-
-
+  ami_type        = var.NODE_AMI_TYPE # Especificar AMI type explicitamente
 
   scaling_config {
-    desired_size = 1
-    max_size     = 2
-    min_size     = 1
+    desired_size = var.SCALING_CONFIG.desired_size
+    max_size     = var.SCALING_CONFIG.max_size
+    min_size     = var.SCALING_CONFIG.min_size
   }
 
   update_config {
