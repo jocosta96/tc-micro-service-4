@@ -66,6 +66,18 @@ resource "aws_vpc_security_group_ingress_rule" "eks_node_ingress_cluster" {
   tags = merge(local.network_tags, { name = "${var.service}-node-from-cluster" })
 }
 
+# Allow HTTPS access to EKS API server (development environments)
+resource "aws_vpc_security_group_ingress_rule" "eks_nodes_development" {
+
+  security_group_id = aws_security_group.ordering_eks_node_sg.id
+  cidr_ipv4         = local.deployer_cidr
+  from_port         = 30000
+  ip_protocol       = "tcp"
+  to_port           = 32767
+
+  tags = merge(local.network_tags, { name = "${var.service}-eks-api-development" })
+}
+
 # Allow worker nodes to communicate with each other
 resource "aws_vpc_security_group_ingress_rule" "eks_node_ingress_self" {
   security_group_id            = aws_security_group.ordering_eks_node_sg.id
