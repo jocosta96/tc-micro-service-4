@@ -34,7 +34,8 @@ resource "aws_db_instance" "ordering_database" {
   port     = var.db_port
 
   # Network settings
-  db_subnet_group_name   = "${var.service}-subnet-group"
+  # Note: subnet_group_name comes from network module output, ensuring proper dependency
+  db_subnet_group_name   = var.subnet_group_name
   vpc_security_group_ids = [aws_security_group.db_sg.id]
   publicly_accessible    = false
 

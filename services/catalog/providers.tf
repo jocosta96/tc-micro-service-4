@@ -4,7 +4,7 @@ terraform {
     key    = "catalog-microservice.tfstate"
     region = "us-east-1"
   }
-  required_version = "1.14.1"
+  required_version = ">= 1.12.2"
   required_providers {
     aws = {
       source  = "hashicorp/aws"
