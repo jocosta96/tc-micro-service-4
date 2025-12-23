@@ -91,6 +91,16 @@ data "kubernetes_service" "app_loadbalancer_service" {
   }
 }
 
+# Discover the NLB created by the Kubernetes Service using its hostname
+data "aws_lb" "app_nlb" {
+  tags = {"kubernetes.io/service-name"="default/svc-app-lb-${var.service}"}
+}
+
+resource "aws_api_gateway_vpc_link" "catalog" {
+  name        = "catalog-vpc-link-${var.service}"
+  target_arns = [data.aws_lb.app_nlb.arn]
+}
+
 resource "aws_api_gateway_integration" "proxy" {
   rest_api_id = aws_api_gateway_rest_api.api.id
   resource_id = aws_api_gateway_resource.proxy.id
@@ -98,7 +108,9 @@ resource "aws_api_gateway_integration" "proxy" {
 
   integration_http_method = "ANY"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${data.kubernetes_service.app_loadbalancer_service.status[0].load_balancer[0].ingress[0].hostname}/{proxy}"
+  connection_type         = "VPC_LINK"
+  connection_id           = aws_api_gateway_vpc_link.catalog.id
+  uri                     = "http://${data.aws_lb.app_nlb.dns_name}/{proxy}"
   request_parameters = {
     "integration.request.path.proxy" = "method.request.path.proxy"
   }

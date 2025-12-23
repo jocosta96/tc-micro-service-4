@@ -44,6 +44,7 @@ resource "kubectl_manifest" "app_secret" {
   depends_on = [
     kubectl_manifest.database_config
   ]
+
 }
 
 # =============================================================================
@@ -65,6 +66,7 @@ resource "kubectl_manifest" "metrics_config" {
   depends_on = [
     kubectl_manifest.app_secret,
   ]
+
 }
 
 
@@ -73,7 +75,8 @@ resource "kubectl_manifest" "app_service" {
 
   yaml_body = templatefile("${path.module}/manifests/svc_app.yaml", {
     load_balancer_scheme = "internal",
-    load_balancer_name   = "svc-app-lb-${var.service}"
+    load_balancer_name   = "svc-app-lb-${var.service}",
+    service_name        = "${var.service}"
   })
 
 }
@@ -96,6 +99,7 @@ resource "kubectl_manifest" "app_hpa" {
   depends_on = [
     kubectl_manifest.metrics_config,
   ]
+
 }
 
 resource "kubectl_manifest" "app_deployment" {

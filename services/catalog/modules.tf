@@ -33,8 +33,7 @@ module "catalog_api_gateway" {
 
   service = "catalog"
   region  = var.DEFAULT_REGION
-
-  depends_on = [ module.catalog_eks ]
+  depends_on = [ module.catalog_eks, module.catalog_k8s ]
 
 }
 
