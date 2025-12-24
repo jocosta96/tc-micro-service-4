@@ -6,6 +6,7 @@ terraform {
   }
 }
 
+
 module "order_network" {
   source = "../../modules/network"
 
@@ -14,16 +15,15 @@ module "order_network" {
   VPC_CIDR_BLOCK     = "10.10.0.0/16"
   subnet_cidr_block  = "10.10.1.0/24"
   SUBNET_COUNT       = 2
-  service            = "order"
+  service            = var.service
 }
 
 module "order_database" {
   source              = "../../modules/database"
-  service             = "order"
+  service             = var.service
   DEFAULT_REGION      = var.DEFAULT_REGION
   VPC_ID              = module.order_network.service_vpc_id
   allowed_cidr_blocks = [module.order_network.service_vpc_cidr_block]
-  # Allow connections from EKS node security group (where pods run), not cluster security group
   allowed_security_groups = [
     module.order_eks.eks_node_security_group_id,
     module.order_eks.eks_security_group_id,
@@ -34,13 +34,11 @@ module "order_database" {
 module "order_eks" {
   source = "../../modules/eks"
 
-  service        = "order"
+  service        = var.service
   VPC_CIDR_BLOCK = module.order_network.service_vpc_cidr_block
-  # For production-style traffic we keep the EKS API and worker nodes private.
   allow_public_access = false
   VPC_ID              = module.order_network.service_vpc_id
   SUBNET_IDS          = module.order_network.service_subnet_ids
-  NODE_AMI_TYPE       = "BOTTLEROCKET_x86_64" #faster than default one
   NODE_INSTANCE_TYPE  = "t3.small"
   SCALING_CONFIG = {
     desired_size = 1
@@ -52,7 +50,7 @@ module "order_eks" {
 module "order_api_gateway" {
   source = "../../modules/api_gateway"
 
-  service = "order"
+  service = var.service
   region  = var.DEFAULT_REGION
   depends_on = [
     module.order_eks,
@@ -64,7 +62,7 @@ module "order_api_gateway" {
 module "order_k8s" {
   source = "../../modules/k8s"
 
-  service                = "order"
+  service                = var.service
   DEFAULT_REGION         = var.DEFAULT_REGION
   cluster_name           = module.order_eks.name
   node_group_name        = module.order_eks.node_group_name
