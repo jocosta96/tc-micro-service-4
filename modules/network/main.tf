@@ -6,7 +6,7 @@ data "http" "my_ip" {
 locals {
   network_tags = {
     origin = "tc-micro-service-4/modules/network/main.tf"
-    deployer_cidr = "${chomp(data.http.my_ip.body)}/32"
+    deployer_cidr = "${chomp(data.http.my_ip.response_body)}/32"
   }
 }
 
@@ -62,5 +62,13 @@ resource "aws_route_table" "ordering_route_table" {
 resource "aws_route_table_association" "ordering_route_table_association" {
   count          = var.SUBNET_COUNT
   subnet_id      = aws_subnet.ordering_subnet[count.index].id
+  route_table_id = aws_route_table.ordering_route_table.id
+}
+
+# Associate database subnets with route table for internet access
+# This is required for publicly_accessible RDS instances to be reachable from the internet
+resource "aws_route_table_association" "database_route_table_association" {
+  count          = 2
+  subnet_id      = aws_subnet.database_subnet[count.index].id
   route_table_id = aws_route_table.ordering_route_table.id
 }

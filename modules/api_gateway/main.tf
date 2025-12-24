@@ -12,8 +12,8 @@ resource "aws_ssm_parameter" "valid_token_ssm" {
 
 data "archive_file" "lambda_zip" {
   type        = "zip"
-  source_file = "${path.module}/lambda_authorizer.py"
-  output_path = "${path.module}/lambda_authorizer.zip"
+  source_file = "${path.module}/scripts/lambda_authorizer.py"
+  output_path = "${path.module}/scripts/lambda_authorizer.zip"
 }
 
 resource "aws_lambda_function" "authorizer" {
@@ -92,13 +92,35 @@ data "kubernetes_service" "app_loadbalancer_service" {
 }
 
 # Discover the NLB created by the Kubernetes Service using its hostname
+# Add explicit dependency on the Kubernetes service to ensure it exists before lookup
 data "aws_lb" "app_nlb" {
   tags = {"kubernetes.io/service-name"="default/svc-app-lb-${var.service}"}
+  
+  depends_on = [data.kubernetes_service.app_loadbalancer_service]
+}
+
+
+resource "null_resource" "wait_for_nlb_active" {
+  depends_on = [
+    data.kubernetes_service.app_loadbalancer_service
+  ]
+
+  provisioner "local-exec" {
+    interpreter = ["bash", "-c"]
+    command = templatefile(
+      "${path.module}/scripts/wait_load_balancer.sh",
+      {
+        app_nlb_arn = data.aws_lb.app_nlb.arn
+      }
+    )
+  }
 }
 
 resource "aws_api_gateway_vpc_link" "catalog" {
   name        = "catalog-vpc-link-${var.service}"
   target_arns = [data.aws_lb.app_nlb.arn]
+
+  depends_on = [ null_resource.wait_for_nlb_active ]
 }
 
 resource "aws_api_gateway_integration" "proxy" {

@@ -37,7 +37,7 @@ resource "aws_db_instance" "ordering_database" {
   # Note: subnet_group_name comes from network module output, ensuring proper dependency
   db_subnet_group_name   = var.subnet_group_name
   vpc_security_group_ids = [aws_security_group.db_sg.id]
-  publicly_accessible    = false
+  publicly_accessible    = true # Relies on security group ingress rules to restrict access
 
   # Backup settings
   backup_retention_period = var.BACKUP_RETENTION_PERIOD

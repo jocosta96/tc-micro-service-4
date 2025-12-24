@@ -15,7 +15,11 @@ module "catalog_database" {
   DEFAULT_REGION = var.DEFAULT_REGION
   VPC_ID         = module.catalog_network.service_vpc_id
   allowed_cidr_blocks = module.catalog_network.service_private_subnet_ids
-  allowed_security_groups = [module.catalog_eks.eks_security_group_id]
+  # Allow connections from EKS node security group (where pods run), not cluster security group
+  allowed_security_groups = [
+    module.catalog_eks.eks_node_security_group_id,
+    module.catalog_eks.eks_security_group_id,
+  ]
   subnet_group_name = module.catalog_network.service_data_subnet_group_name
 }
 
@@ -44,8 +48,7 @@ module "catalog_api_gateway" {
   region  = var.DEFAULT_REGION
   depends_on = [
     module.catalog_eks,
-    module.catalog_k8s,
-    module.catalog_database # IS NOT A REAL DEPENDENCY BUT TO GIVE LOAD BALANCER TIME TO GET READY
+    module.catalog_k8s
   ]
 }
 
@@ -58,5 +61,6 @@ module "catalog_k8s" {
   cluster_name   = module.catalog_eks.name
   node_group_name = module.catalog_eks.node_group_name
 
+  depends_on = [ module.catalog_eks ]
 }
 

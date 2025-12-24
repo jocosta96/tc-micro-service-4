@@ -44,3 +44,31 @@ resource "aws_eks_access_policy_association" "ordering_eks_access_policy_associa
 
   depends_on = [aws_eks_access_entry.ordering_eks_access_entry_voclabs]
 }
+
+# Automatic kubeconfig update after EKS cluster creation
+resource "null_resource" "auto_kubeconfig_setup" {
+
+  # Triggers when cluster or access entries change
+  triggers = {
+    cluster_endpoint = aws_eks_cluster.ordering_eks_cluster.endpoint
+    cluster_name     = aws_eks_cluster.ordering_eks_cluster.name
+    access_entry     = aws_eks_access_entry.ordering_eks_access_entry_voclabs.principal_arn
+  }
+
+  # Update kubeconfig automatically
+  provisioner "local-exec" {
+    command = "aws eks update-kubeconfig --region ${var.DEFAULT_REGION} --name ${aws_eks_cluster.ordering_eks_cluster.name} --alias ${var.service}-cluster"
+  }
+
+  # Verify connection works
+  provisioner "local-exec" {
+    command = "kubectl config current-context"
+  }
+
+  depends_on = [
+    aws_eks_cluster.ordering_eks_cluster,
+    aws_eks_node_group.ordering_eks_node_group,
+    aws_eks_access_entry.ordering_eks_access_entry_voclabs,
+    aws_eks_access_policy_association.ordering_eks_access_policy_association_voclabs
+  ]
+}

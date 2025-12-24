@@ -9,3 +9,8 @@ output "node_group_name" {
 output "eks_security_group_id" {
   value = aws_security_group.ordering_eks_cluster_sg.id
 }
+
+output "eks_node_security_group_id" {
+  description = "Security group ID for EKS worker nodes (where pods run)"
+  value       = aws_security_group.ordering_eks_node_sg.id
+}

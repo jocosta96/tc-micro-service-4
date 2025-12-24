@@ -10,7 +10,7 @@ data "http" "my_ip" {
 }
 
 locals {
-  deployer_cidr = "${chomp(data.http.my_ip.body)}/32"
+  deployer_cidr = "${chomp(data.http.my_ip.response_body)}/32"
 }
 
 
@@ -66,7 +66,7 @@ resource "aws_vpc_security_group_ingress_rule" "eks_node_ingress_cluster" {
   tags = merge(local.network_tags, { name = "${var.service}-node-from-cluster" })
 }
 
-# Allow HTTPS access to EKS API server (development environments)
+# Allow NodePort access from deployer IP (for NodePort services and direct pod access)
 resource "aws_vpc_security_group_ingress_rule" "eks_nodes_development" {
 
   security_group_id = aws_security_group.ordering_eks_node_sg.id
@@ -75,7 +75,7 @@ resource "aws_vpc_security_group_ingress_rule" "eks_nodes_development" {
   ip_protocol       = "tcp"
   to_port           = 32767
 
-  tags = merge(local.network_tags, { name = "${var.service}-eks-api-development" })
+  tags = merge(local.network_tags, { name = "${var.service}-eks-nodeport-development" })
 }
 
 # Allow worker nodes to communicate with each other
@@ -85,17 +85,6 @@ resource "aws_vpc_security_group_ingress_rule" "eks_node_ingress_self" {
   ip_protocol                  = "-1"
 
   tags = merge(local.network_tags, { name = "${var.service}-node-to-node" })
-}
-
-# Allow HTTP/HTTPS from Load Balancer (for app access)
-resource "aws_vpc_security_group_ingress_rule" "eks_node_ingress_http" {
-  security_group_id = aws_security_group.ordering_eks_node_sg.id
-  cidr_ipv4         = var.allow_public_access ? "0.0.0.0/0" : var.VPC_CIDR_BLOCK
-  from_port         = 30000
-  ip_protocol       = "tcp"
-  to_port           = 32767
-
-  tags = merge(local.network_tags, { name = "${var.service}-node-app-access" })
 }
 
 # Egress rules - Allow all outbound traffic
