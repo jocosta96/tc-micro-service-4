@@ -1,6 +1,6 @@
 locals {
   secret_tags = {
-    origin="tc-micro-service-4/modules/database/secrets.tf"
+    origin = "tc-micro-service-4/modules/database/secrets.tf"
   }
 }
 

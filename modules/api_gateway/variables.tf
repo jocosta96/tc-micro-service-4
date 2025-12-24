@@ -18,5 +18,5 @@ variable "integration_type" {
 variable "stage_name" {
   description = "API Gateway stage name"
   type        = string
-  default     = "dev"
+  default     = "stage"
 }

@@ -35,8 +35,8 @@ resource "aws_ssm_parameter" "valid_token_ssm" {
 resource "kubectl_manifest" "app_secret" {
   yaml_body = templatefile(
     "${path.module}/manifests/sec_app.yaml", {
-      sec_name        = "sec-app-${var.service}",
-      api_user_base64 = base64encode("ordering"),
+      sec_name            = "sec-app-${var.service}",
+      api_user_base64     = base64encode("ordering"),
       api_password_base64 = base64encode(random_password.basic_auth_password.result)
     }
   )
@@ -61,7 +61,7 @@ data "http" "metrics_components" {
 
 resource "kubectl_manifest" "metrics_config" {
 
-  yaml_body = data.http.metrics_components.body
+  yaml_body = data.http.metrics_components.response_body
 
   depends_on = [
     kubectl_manifest.app_secret,
@@ -76,7 +76,8 @@ resource "kubectl_manifest" "app_service" {
   yaml_body = templatefile("${path.module}/manifests/svc_app.yaml", {
     load_balancer_scheme = "internal",
     load_balancer_name   = "svc-app-lb-${var.service}",
-    service_name        = "${var.service}"
+    service_name         = "${var.service}",
+    dpm_name             = "dpm-${var.service}"
   })
 
 }
@@ -91,9 +92,9 @@ resource "kubectl_manifest" "app_hpa" {
 
   yaml_body = templatefile(
     "${path.module}/manifests/hpa_app.yaml", {
-      hpa_name       = "hpa-app-${var.service}",
-      dpm_name       = "dpm-${var.service}"
-    } 
+      hpa_name = "hpa-app-${var.service}",
+      dpm_name = "dpm-${var.service}"
+    }
   )
 
   depends_on = [
@@ -106,10 +107,10 @@ resource "kubectl_manifest" "app_deployment" {
 
   yaml_body = templatefile(
     "${path.module}/manifests/dpm_app.yaml", {
-      dpm_name            = "dpm-${var.service}",
-      dpm_image           = "jocosta96/soat-challenge"#"jocosta96/${var.service}-microservice:latest",
-      app_sec_name        = "sec-app-${var.service}",
-      cfm_name            = "cfm-database-${var.service}"
+      dpm_name     = "dpm-${var.service}",
+      dpm_image    = var.image_name,
+      app_sec_name = "sec-app-${var.service}",
+      cfm_name     = "cfm-database-${var.service}"
     }
   )
 

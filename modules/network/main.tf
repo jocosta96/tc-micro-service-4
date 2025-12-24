@@ -5,7 +5,7 @@ data "http" "my_ip" {
 
 locals {
   network_tags = {
-    origin = "tc-micro-service-4/modules/network/main.tf"
+    origin        = "tc-micro-service-4/modules/network/main.tf"
     deployer_cidr = "${chomp(data.http.my_ip.response_body)}/32"
   }
 }

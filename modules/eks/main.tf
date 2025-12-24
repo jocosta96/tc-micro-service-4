@@ -12,6 +12,8 @@ resource "aws_eks_cluster" "ordering_eks_cluster" {
   version  = "1.34"
   role_arn = local.cluster_role_arn
 
+  enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+
   access_config {
     authentication_mode = "API"
   }
@@ -38,7 +40,7 @@ resource "aws_eks_node_group" "ordering_eks_node_group" {
   node_role_arn   = local.node_group_role_arn
   subnet_ids      = var.SUBNET_IDS
   instance_types  = [var.NODE_INSTANCE_TYPE] # Mudança: t3.small em vez de t2.micro
-  capacity_type   = "ON_DEMAND"  # Mudança: ON_DEMAND em vez de SPOT
+  capacity_type   = "ON_DEMAND"              # Mudança: ON_DEMAND em vez de SPOT
   disk_size       = 20
   ami_type        = var.NODE_AMI_TYPE # Especificar AMI type explicitamente
 
@@ -54,4 +56,11 @@ resource "aws_eks_node_group" "ordering_eks_node_group" {
 
   # Aguardar cluster estar pronto
   depends_on = [aws_eks_cluster.ordering_eks_cluster]
+}
+
+resource "aws_eks_addon" "cloudwatch_observability" {
+  cluster_name                = aws_eks_cluster.ordering_eks_cluster.name
+  addon_name                  = "amazon-cloudwatch-observability"
+  service_account_role_arn    = local.cluster_role_arn
+  resolve_conflicts_on_create = "OVERWRITE"
 }

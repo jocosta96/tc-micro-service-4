@@ -94,17 +94,13 @@ data "kubernetes_service" "app_loadbalancer_service" {
 # Discover the NLB created by the Kubernetes Service using its hostname
 # Add explicit dependency on the Kubernetes service to ensure it exists before lookup
 data "aws_lb" "app_nlb" {
-  tags = {"kubernetes.io/service-name"="default/svc-app-lb-${var.service}"}
-  
+  tags = { "kubernetes.io/service-name" = "default/svc-app-lb-${var.service}" }
+
   depends_on = [data.kubernetes_service.app_loadbalancer_service]
 }
 
 
 resource "null_resource" "wait_for_nlb_active" {
-  depends_on = [
-    data.kubernetes_service.app_loadbalancer_service
-  ]
-
   provisioner "local-exec" {
     interpreter = ["bash", "-c"]
     command = templatefile(
@@ -120,7 +116,7 @@ resource "aws_api_gateway_vpc_link" "catalog" {
   name        = "catalog-vpc-link-${var.service}"
   target_arns = [data.aws_lb.app_nlb.arn]
 
-  depends_on = [ null_resource.wait_for_nlb_active ]
+  depends_on = [null_resource.wait_for_nlb_active]
 }
 
 resource "aws_api_gateway_integration" "proxy" {
@@ -136,4 +132,6 @@ resource "aws_api_gateway_integration" "proxy" {
   request_parameters = {
     "integration.request.path.proxy" = "method.request.path.proxy"
   }
+
+  depends_on = [null_resource.wait_for_nlb_active]
 }

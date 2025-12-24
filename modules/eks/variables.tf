@@ -35,18 +35,18 @@ variable "DEFAULT_REGION" {
 }
 
 variable "K8S_NAMESPACE" {
-  type = string
+  type    = string
   default = "default"
 }
 
 variable "NODE_INSTANCE_TYPE" {
-  type = string
+  type    = string
   default = "t3.medium"
 }
 
 variable "NODE_AMI_TYPE" {
   type    = string
-  default = "AL2023_x86_64_STANDARD"
+  default = "BOTTLEROCKET_x86_64"
 }
 
 variable "SCALING_CONFIG" {

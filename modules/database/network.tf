@@ -36,8 +36,8 @@ resource "aws_vpc_security_group_ingress_rule" "deployer_database_access" {
   ip_protocol       = "tcp"
   to_port           = 5432
 
-  tags = merge(local.network_tags, { 
-    name = "${var.service}-db-deployer-access"
+  tags = merge(local.network_tags, {
+    name    = "${var.service}-db-deployer-access"
     purpose = "local-debugging"
   })
 }

@@ -6,14 +6,12 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
     service.beta.kubernetes.io/aws-load-balancer-scheme: "${load_balancer_scheme}"
     service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
-    # Add a tag to the created NLB so Terraform can reliably discover it
     service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: "service=${service_name}"
-    service.beta.kubernetes.io/aws-load-balancer-name: "${load_balancer_name}"
 spec:
   type: LoadBalancer
   selector:
-    app: dpm-app
+    app: "${dpm_name}"
   ports:
   - port: 80
     targetPort: 8080
-    protocol: TCP
+    protocol: TCP   
