@@ -29,6 +29,7 @@ module "catalog_database" {
     module.catalog_eks.eks_security_group_id,
   ]
   subnet_group_name = module.catalog_network.service_data_subnet_group_name
+  allow_public_access = true
 }
 
 module "catalog_eks" {

@@ -1,12 +1,6 @@
-# Detect public IP of the operator to restrict control-plane access during development/deploy
-data "http" "my_ip" {
-  url = "https://checkip.amazonaws.com"
-}
-
 locals {
   network_tags = {
     origin        = "tc-micro-service-4/modules/network/main.tf"
-    deployer_cidr = "${chomp(data.http.my_ip.response_body)}/32"
   }
 }
 

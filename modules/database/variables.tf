@@ -84,3 +84,7 @@ variable "subnet_group_name" {
   description = "The name of the DB subnet group"
   type        = string
 }
+
+variable "allow_public_access" {
+  type = bool
+}
