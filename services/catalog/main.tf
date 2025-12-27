@@ -53,8 +53,9 @@ module "catalog_api_gateway" {
 
   service = var.service
   region  = var.DEFAULT_REGION
+  load_balancer_arn  = module.catalog_eks.eks_load_balancer_arn
+  eks_load_balancer_dns_name = module.catalog_eks.eks_load_balancer_dns_name
   depends_on = [
-    module.catalog_eks,
     module.catalog_k8s
   ]
 }
@@ -72,6 +73,7 @@ module "catalog_k8s" {
   vpc_id                 = module.catalog_network.service_vpc_id
   vpc_cidr               = module.catalog_network.service_vpc_cidr_block
   node_security_group_id = module.catalog_eks.eks_node_security_group_id
+  eks_load_balancer_arn = module.catalog_eks.eks_load_balancer_arn
   depends_on             = [module.catalog_eks]
 }
 

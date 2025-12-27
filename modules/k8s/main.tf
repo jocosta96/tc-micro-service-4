@@ -78,6 +78,8 @@ resource "kubectl_manifest" "app_service" {
     load_balancer_name   = "svc-app-lb-${var.service}",
     service_name         = "${var.service}",
     dpm_name             = "dpm-${var.service}"
+    target_group_arn     = var.eks_load_balancer_arn
+    tgb_name             = "tgb-${var.service}"
   })
 
 }
@@ -101,33 +103,6 @@ resource "kubectl_manifest" "app_hpa" {
     kubectl_manifest.metrics_config,
   ]
 
-}
-
-resource "kubectl_manifest" "image_pull_job" {
-  yaml_body = templatefile(
-    "${path.module}/manifests/job_cache_image.yaml", {
-      image_name = "${local.ecr_url}/${local.prefix}/${var.image_name}",
-    }
-  )
-}
-
-resource "time_sleep" "cache_is_ready" {
-  depends_on = [kubectl_manifest.image_pull_job]
-
-  create_duration = "10s"
-}
-
-# validate if image exists
-data "aws_ecr_image" "service_image" {
-  repository_name = "${aws_ecr_pull_through_cache_rule.dockerhub.ecr_repository_prefix}/${var.image_name}"
-  image_tag       = var.image_tag
-  depends_on = [ aws_ecr_pull_through_cache_rule.dockerhub , time_sleep.cache_is_ready ]
-}
-
-# forcing digest uri
-data "aws_ecr_image" "service_image_by_digest" {
-  repository_name = data.aws_ecr_image.service_image.repository_name
-  image_digest       = data.aws_ecr_image.service_image.id
 }
 
 resource "kubectl_manifest" "app_deployment" {

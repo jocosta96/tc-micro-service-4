@@ -20,3 +20,11 @@ variable "stage_name" {
   type        = string
   default     = "stage"
 }
+
+variable "load_balancer_arn" {
+  type = string
+}
+
+variable "eks_load_balancer_dns_name" {
+  type = string
+}

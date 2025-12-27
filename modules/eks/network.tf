@@ -103,3 +103,29 @@ resource "aws_vpc_security_group_egress_rule" "eks_node_egress" {
 
   tags = merge(local.network_tags, { name = "${var.service}-node-egress" })
 }
+
+resource "aws_lb" "app_nlb" {
+  name               = "${var.service}-nlb"
+  internal           = true
+  load_balancer_type = "network"
+  subnets            = var.SUBNET_IDS
+}
+
+resource "aws_lb_target_group" "app_tg" {
+  name        = "${var.service}-tg"
+  port        = 8080
+  protocol    = "TCP"
+  vpc_id      = var.VPC_ID
+  target_type = "ip" # Recommended: routes directly to Pod IPs
+}
+
+resource "aws_lb_listener" "app_listener" {
+  load_balancer_arn = aws_lb.app_nlb.arn
+  port              = 80
+  protocol          = "TCP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app_tg.arn
+  }
+}

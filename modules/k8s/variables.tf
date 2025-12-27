@@ -34,3 +34,7 @@ variable "vpc_cidr" {
 variable "node_security_group_id" {
   type = string
 }
+
+variable "eks_load_balancer_arn" {
+  type = string
+}
