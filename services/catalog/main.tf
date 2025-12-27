@@ -68,6 +68,7 @@ module "catalog_k8s" {
   cluster_name           = module.catalog_eks.name
   node_group_name        = module.catalog_eks.node_group_name
   image_name             = "jocosta96/soat-challenge"
+  image_tag              = "latest"
   vpc_id                 = module.catalog_network.service_vpc_id
   vpc_cidr               = module.catalog_network.service_vpc_cidr_block
   node_security_group_id = module.catalog_eks.eks_node_security_group_id

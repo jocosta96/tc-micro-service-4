@@ -28,16 +28,16 @@ resource "aws_security_group" "db_sg" {
   }
 }
 
-# Allow PostgreSQL access from deployer's IP for local debugging
-resource "aws_vpc_security_group_ingress_rule" "deployer_database_access" {
-  security_group_id = aws_security_group.db_sg.id
-  cidr_ipv4         = local.deployer_cidr
-  from_port         = 5432
-  ip_protocol       = "tcp"
-  to_port           = 5432
-
-  tags = merge(local.network_tags, {
-    name    = "${var.service}-db-deployer-access"
-    purpose = "local-debugging"
-  })
-}
+## Allow PostgreSQL access from deployer's IP for local debugging
+#resource "aws_vpc_security_group_ingress_rule" "deployer_database_access" {
+#  security_group_id = aws_security_group.db_sg.id
+#  cidr_ipv4         = local.deployer_cidr
+#  from_port         = 5432
+#  ip_protocol       = "tcp"
+#  to_port           = 5432
+#
+#  tags = merge(local.network_tags, {
+#    name    = "${var.service}-db-deployer-access"
+#    purpose = "local-debugging"
+#  })
+#}

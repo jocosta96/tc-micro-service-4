@@ -1,3 +1,7 @@
+locals {
+  api_gateway_tags = {"origin": "tc-micro-service-4/modules/api_gateway/main.tf"}
+}
+
 resource "random_password" "valid_token" {
   length  = 16
   special = true
@@ -35,8 +39,13 @@ resource "aws_lambda_function" "authorizer" {
   }
 }
 
+#data "http" "open_api_spec" {
+#  url = "${data.aws_lb.app_nlb.dns_name}/openapi.json"
+#}
+
 resource "aws_api_gateway_rest_api" "api" {
   name = "${var.service}-proxy-api"
+#  body = data.http.open_api_spec.response_body
 }
 
 resource "aws_api_gateway_resource" "proxy" {
@@ -74,6 +83,13 @@ resource "aws_api_gateway_stage" "api_stage" {
   stage_name    = var.stage_name
   rest_api_id   = aws_api_gateway_rest_api.api.id
   deployment_id = aws_api_gateway_deployment.api.id
+}
+
+resource "aws_ssm_parameter" "api_gateway_url" {
+  name        = "/ordering-system/${var.service}/apigateway/url"
+  description = "API Gateway URL for ${var.service} service"
+  type        = "String"
+  value       = aws_api_gateway_stage.api_stage.invoke_url
 }
 
 resource "aws_lambda_permission" "apigw_authorizer_invoke" {
@@ -117,6 +133,8 @@ resource "aws_api_gateway_vpc_link" "catalog" {
   target_arns = [data.aws_lb.app_nlb.arn]
 
   depends_on = [null_resource.wait_for_nlb_active]
+
+  tags = local.api_gateway_tags
 }
 
 resource "aws_api_gateway_integration" "proxy" {

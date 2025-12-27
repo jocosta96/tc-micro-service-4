@@ -103,12 +103,39 @@ resource "kubectl_manifest" "app_hpa" {
 
 }
 
+resource "kubectl_manifest" "image_pull_job" {
+  yaml_body = templatefile(
+    "${path.module}/manifests/job_cache_image.yaml", {
+      image_name = "${local.ecr_url}/${local.prefix}/${var.image_name}",
+    }
+  )
+}
+
+resource "time_sleep" "cache_is_ready" {
+  depends_on = [kubectl_manifest.image_pull_job]
+
+  create_duration = "10s"
+}
+
+# validate if image exists
+data "aws_ecr_image" "service_image" {
+  repository_name = "${aws_ecr_pull_through_cache_rule.dockerhub.ecr_repository_prefix}/${var.image_name}"
+  image_tag       = var.image_tag
+  depends_on = [ aws_ecr_pull_through_cache_rule.dockerhub , time_sleep.cache_is_ready ]
+}
+
+# forcing digest uri
+data "aws_ecr_image" "service_image_by_digest" {
+  repository_name = data.aws_ecr_image.service_image.repository_name
+  image_digest       = data.aws_ecr_image.service_image.id
+}
+
 resource "kubectl_manifest" "app_deployment" {
 
   yaml_body = templatefile(
     "${path.module}/manifests/dpm_app.yaml", {
       dpm_name     = "dpm-${var.service}",
-      dpm_image    = var.image_name,
+      dpm_image    = data.aws_ecr_image.service_image_by_digest.image_uri,
       app_sec_name = "sec-app-${var.service}",
       cfm_name     = "cfm-database-${var.service}"
     }
@@ -119,6 +146,7 @@ resource "kubectl_manifest" "app_deployment" {
     kubectl_manifest.app_secret,
     kubectl_manifest.database_config,
     kubectl_manifest.app_hpa,
+    data.aws_ecr_image.service_image
   ]
 
 }

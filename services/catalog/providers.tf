@@ -49,7 +49,6 @@ provider "kubernetes" {
 }
 
 
-
 data "aws_eks_cluster" "cluster" {
   name       = "catalog-eks-cluster"
   depends_on = [module.catalog_eks]
@@ -59,3 +58,6 @@ data "aws_eks_cluster_auth" "auth" {
   name       = "catalog-eks-cluster"
   depends_on = [module.catalog_eks]
 }
+
+
+provider "time" {}
