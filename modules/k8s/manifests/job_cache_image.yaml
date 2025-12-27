@@ -1,0 +1,18 @@
+#update the database tables according to the orm objects
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: image-pull
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: image-pull
+        image: "${image_name}"
+        command: ["sh", "-c"]
+        args:
+          - |
+            echo "image pull to cache in ECR"
+ 

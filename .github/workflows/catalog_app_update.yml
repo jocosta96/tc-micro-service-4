@@ -1,0 +1,67 @@
+name: "catalog-microservice-targeted-update"
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_apply:
+        description: 'Set to true to run apply after plan'
+        required: false
+        default: 'false'
+  workflow_call:
+    inputs:
+      confirm_apply:
+        required: false
+        type: boolean
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_DEFAULT_REGION:
+        required: true
+      AWS_SESSION_TOKEN:
+        required: false
+
+env:
+  TF_VERSION: "1.14.1"
+
+jobs:
+  targeted_image_update:
+    name: "Targeted App Deployment Update"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./services/catalog
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Terraform Init (Targeted)
+        run: |
+          terraform init -upgrade -reconfigure
+
+      - name: Terraform Plan (Targeted)
+        id: targeted_plan
+        run: |
+          TARGET=module.catalog_eks.kubectl_manifest.app_deployment
+          terraform plan -no-color -target=${TARGET}
+
+      - name: Terraform Apply (Targeted)
+        if: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.confirm_apply == 'true') || (github.event_name == 'workflow_call' && inputs.confirm_apply == true) }}
+        run: |
+          TARGET=module.catalog_eks.kubectl_manifest.app_deployment
+          terraform apply -auto-approve -target=${TARGET}
