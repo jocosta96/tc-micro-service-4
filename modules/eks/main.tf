@@ -9,7 +9,7 @@ locals {
 resource "aws_eks_cluster" "ordering_eks_cluster" {
 
   name     = "${var.service}-eks-cluster"
-  version  = "1.34"
+  version  = "1.29"
   role_arn = local.cluster_role_arn
 
   enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
@@ -22,8 +22,8 @@ resource "aws_eks_cluster" "ordering_eks_cluster" {
     subnet_ids              = var.SUBNET_IDS
     security_group_ids      = [aws_security_group.ordering_eks_cluster_sg.id]
     endpoint_private_access = true
-    endpoint_public_access  = true
-    public_access_cidrs     = [local.deployer_cidr]
+    endpoint_public_access  = length(var.allowed_ip_cidrs) > 0
+    public_access_cidrs     = length(var.allowed_ip_cidrs) > 0 ? var.allowed_ip_cidrs : []
   }
 
   tags = local.eks_tags

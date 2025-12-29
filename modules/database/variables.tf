@@ -69,6 +69,7 @@ variable "allowed_cidr_blocks" {
 variable "allowed_security_groups" {
   description = "List of security group IDs allowed to access the database"
   type        = list(string)
+  default     = []
 }
 
 variable "service" {

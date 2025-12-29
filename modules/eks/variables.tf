@@ -61,3 +61,9 @@ variable "SCALING_CONFIG" {
     min_size     = 1
   }
 }
+
+variable "allowed_ip_cidrs" {
+  description = "List of CIDR blocks allowed to access EKS API server"
+  type        = list(string)
+  default     = []
+}

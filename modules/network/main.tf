@@ -59,10 +59,20 @@ resource "aws_route_table_association" "ordering_route_table_association" {
   route_table_id = aws_route_table.ordering_route_table.id
 }
 
-# Associate database subnets with route table for internet access
-# This is required for publicly_accessible RDS instances to be reachable from the internet
+# Private route table for database subnets (no Internet Gateway route)
+resource "aws_route_table" "ordering_private_route_table" {
+  tags   = local.network_tags
+  vpc_id = aws_vpc.ordering_vpc.id
+  route {
+    cidr_block = aws_vpc.ordering_vpc.cidr_block
+    gateway_id = "local"
+  }
+  # No route to Internet Gateway - database subnets are private
+}
+
+# Associate database subnets with private route table (no internet access)
 resource "aws_route_table_association" "database_route_table_association" {
   count          = 2
   subnet_id      = aws_subnet.database_subnet[count.index].id
-  route_table_id = aws_route_table.ordering_route_table.id
+  route_table_id = aws_route_table.ordering_private_route_table.id
 }

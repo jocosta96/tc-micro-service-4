@@ -29,7 +29,24 @@ module "catalog_database" {
     module.catalog_eks.eks_security_group_id,
   ]
   subnet_group_name = module.catalog_network.service_data_subnet_group_name
-  allow_public_access = true
+  allow_public_access = false
+}
+
+module "catalog_bastion" {
+  source = "../../modules/bastion"
+
+  service           = var.service
+  vpc_id            = module.catalog_network.service_vpc_id
+  subnet_ids        = module.catalog_network.service_subnet_ids
+  allowed_ip_cidrs  = var.allowed_ip_cidrs
+  key_pair_name     = var.ssh_key_pair_name
+  instance_type     = "t3.micro"
+  database_endpoint = module.catalog_database.database_endpoint
+  database_port     = module.catalog_database.database_port
+  ssm_path_prefix   = module.catalog_database.ssm_path_prefix
+  DEFAULT_REGION    = var.DEFAULT_REGION
+
+  depends_on = [module.catalog_database]
 }
 
 module "catalog_eks" {
@@ -41,6 +58,7 @@ module "catalog_eks" {
   VPC_ID              = module.catalog_network.service_vpc_id
   SUBNET_IDS          = module.catalog_network.service_subnet_ids
   NODE_INSTANCE_TYPE  = "t3.small"
+  allowed_ip_cidrs    = var.allowed_ip_cidrs
   SCALING_CONFIG = {
     desired_size = 1
     max_size     = 3

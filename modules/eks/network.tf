@@ -4,13 +4,9 @@ locals {
   }
 }
 
-# Detect public IP of the operator to restrict control-plane access during development/deploy
-data "http" "my_ip" {
-  url = "https://checkip.amazonaws.com"
-}
-
 locals {
-  deployer_cidr = "${chomp(data.http.my_ip.response_body)}/32"
+  # Use first CIDR from allowed_ip_cidrs if provided, otherwise empty list (no access)
+  deployer_cidr = length(var.allowed_ip_cidrs) > 0 ? var.allowed_ip_cidrs[0] : ""
 }
 
 
@@ -24,8 +20,9 @@ resource "aws_security_group" "ordering_eks_cluster_sg" {
   tags = merge(local.network_tags, { name = "${var.service}-eks-cluster-sg" })
 }
 
-# Allow HTTPS access to EKS API server (development environments)
+# Allow HTTPS access to EKS API server from allowed IP CIDRs
 resource "aws_vpc_security_group_ingress_rule" "eks_api_server_development" {
+  count = length(var.allowed_ip_cidrs) > 0 ? 1 : 0
 
   security_group_id = aws_security_group.ordering_eks_cluster_sg.id
   cidr_ipv4         = local.deployer_cidr
@@ -66,8 +63,9 @@ resource "aws_vpc_security_group_ingress_rule" "eks_node_ingress_cluster" {
   tags = merge(local.network_tags, { name = "${var.service}-node-from-cluster" })
 }
 
-# Allow NodePort access from deployer IP (for NodePort services and direct pod access)
+# Allow NodePort access from allowed IP CIDRs (for NodePort services and direct pod access)
 resource "aws_vpc_security_group_ingress_rule" "eks_nodes_development" {
+  count = length(var.allowed_ip_cidrs) > 0 ? 1 : 0
 
   security_group_id = aws_security_group.ordering_eks_node_sg.id
   cidr_ipv4         = local.deployer_cidr

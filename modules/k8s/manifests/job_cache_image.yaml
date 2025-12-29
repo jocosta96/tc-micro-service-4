@@ -11,6 +11,8 @@ spec:
       containers:
       - name: image-pull
         image: "${image_name}"
+        securityContext:
+          allowPrivilegeEscalation: false
         command: ["sh", "-c"]
         args:
           - |
