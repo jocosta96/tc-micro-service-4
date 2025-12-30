@@ -100,14 +100,6 @@ resource "aws_lambda_permission" "apigw_authorizer_invoke" {
   source_arn    = "${aws_api_gateway_rest_api.api.execution_arn}/authorizers/*"
 }
 
-data "kubernetes_service" "app_loadbalancer_service" {
-  metadata {
-    name      = "svc-app-lb-${var.service}"
-    namespace = "default"
-  }
-}
-
-
 resource "null_resource" "wait_for_nlb_active" {
   provisioner "local-exec" {
     interpreter = ["bash", "-c"]

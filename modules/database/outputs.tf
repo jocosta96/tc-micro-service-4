@@ -22,4 +22,3 @@ output "database_security_group_id" {
   description = "Security group ID of the database"
   value       = aws_security_group.db_sg.id
 }
-

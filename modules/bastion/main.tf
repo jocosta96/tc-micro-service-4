@@ -46,7 +46,7 @@ resource "aws_security_group" "bastion_sg" {
 resource "aws_instance" "bastion" {
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = var.instance_type
-  key_name               = var.key_pair_name
+  key_name               = aws_key_pair.bastion_key_pair.key_name
   vpc_security_group_ids = [aws_security_group.bastion_sg.id]
   subnet_id              = var.subnet_ids[0] # Use first public subnet
 
@@ -86,3 +86,13 @@ data "aws_ami" "amazon_linux" {
   }
 }
 
+resource "aws_key_pair" "bastion_key_pair" {
+  key_name   = var.key_pair_name
+  public_key = file("~/.ssh/${var.key_pair_name}.pub")
+}
+
+resource "aws_ssm_parameter" "bastion_public_ip" {
+  name  = "/ordering-system/${var.service}/bastion/public_ip"
+  type  = "String"
+  value = aws_instance.bastion.public_ip
+}

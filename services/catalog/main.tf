@@ -18,20 +18,6 @@ module "catalog_network" {
   service            = var.service
 }
 
-module "catalog_database" {
-  source              = "../../modules/database"
-  service             = var.service
-  DEFAULT_REGION      = var.DEFAULT_REGION
-  VPC_ID              = module.catalog_network.service_vpc_id
-  allowed_cidr_blocks = [module.catalog_network.service_vpc_cidr_block]
-  allowed_security_groups = [
-    module.catalog_eks.eks_node_security_group_id,
-    module.catalog_eks.eks_security_group_id,
-  ]
-  subnet_group_name = module.catalog_network.service_data_subnet_group_name
-  allow_public_access = false
-}
-
 module "catalog_bastion" {
   source = "../../modules/bastion"
 
@@ -41,13 +27,27 @@ module "catalog_bastion" {
   allowed_ip_cidrs  = var.allowed_ip_cidrs
   key_pair_name     = var.ssh_key_pair_name
   instance_type     = "t3.micro"
-  database_endpoint = module.catalog_database.database_endpoint
-  database_port     = module.catalog_database.database_port
-  ssm_path_prefix   = module.catalog_database.ssm_path_prefix
   DEFAULT_REGION    = var.DEFAULT_REGION
-
-  depends_on = [module.catalog_database]
 }
+
+module "catalog_database" {
+  source              = "../../modules/database"
+  service             = var.service
+  DEFAULT_REGION      = var.DEFAULT_REGION
+  VPC_ID              = module.catalog_network.service_vpc_id
+  allowed_cidr_blocks = [module.catalog_network.service_vpc_cidr_block]
+  allowed_security_groups = [
+    module.catalog_eks.eks_node_security_group_id,
+    module.catalog_eks.eks_security_group_id,
+    module.catalog_bastion.security_group_id,
+  ]
+  subnet_group_name = module.catalog_network.service_data_subnet_group_name
+  allow_public_access = false
+  key_pair_name     = var.ssh_key_pair_name
+
+  depends_on = [module.catalog_bastion]
+}
+
 
 module "catalog_eks" {
   source = "../../modules/eks"

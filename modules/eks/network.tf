@@ -1,12 +1,16 @@
+data "http" "my_ip" {
+  url = "https://checkip.amazonaws.com"
+}
+
 locals {
   network_tags = {
     origin = "tc-micro-service-4/modules/eks/network.tf"
   }
-}
 
-locals {
   # Use first CIDR from allowed_ip_cidrs if provided, otherwise empty list (no access)
-  deployer_cidr = length(var.allowed_ip_cidrs) > 0 ? var.allowed_ip_cidrs[0] : ""
+  deployer_cidr = length(var.allowed_ip_cidrs) > 0 ? var.allowed_ip_cidrs[0] : "${chomp(data.http.my_ip.response_body)}/32"
+
+  allowed_ip_cidrs = flatten(concat(var.allowed_ip_cidrs, [local.deployer_cidr]))
 }
 
 
@@ -22,7 +26,7 @@ resource "aws_security_group" "ordering_eks_cluster_sg" {
 
 # Allow HTTPS access to EKS API server from allowed IP CIDRs
 resource "aws_vpc_security_group_ingress_rule" "eks_api_server_development" {
-  count = length(var.allowed_ip_cidrs) > 0 ? 1 : 0
+  count = length(local.allowed_ip_cidrs) > 0 ? 1 : 0
 
   security_group_id = aws_security_group.ordering_eks_cluster_sg.id
   cidr_ipv4         = local.deployer_cidr
@@ -65,7 +69,7 @@ resource "aws_vpc_security_group_ingress_rule" "eks_node_ingress_cluster" {
 
 # Allow NodePort access from allowed IP CIDRs (for NodePort services and direct pod access)
 resource "aws_vpc_security_group_ingress_rule" "eks_nodes_development" {
-  count = length(var.allowed_ip_cidrs) > 0 ? 1 : 0
+  count = length(local.allowed_ip_cidrs) > 0 ? 1 : 0
 
   security_group_id = aws_security_group.ordering_eks_node_sg.id
   cidr_ipv4         = local.deployer_cidr

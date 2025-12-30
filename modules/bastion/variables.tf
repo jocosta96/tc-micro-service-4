@@ -30,20 +30,10 @@ variable "instance_type" {
   default     = "t3.micro"
 }
 
-variable "database_endpoint" {
-  description = "Database endpoint address for SSH tunnel configuration"
-  type        = string
-}
-
 variable "database_port" {
   description = "Database port for SSH tunnel configuration"
   type        = number
   default     = 5432
-}
-
-variable "ssm_path_prefix" {
-  description = "SSM Parameter Store path prefix for database credentials"
-  type        = string
 }
 
 variable "DEFAULT_REGION" {
