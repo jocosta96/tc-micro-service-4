@@ -12,7 +12,8 @@ variable "cluster_name" {
 }
 
 variable "node_group_name" {
-  type = string
+  type    = string
+  default = null
 }
 
 variable "image_name" {
@@ -37,4 +38,19 @@ variable "node_security_group_id" {
 
 variable "eks_load_balancer_arn" {
   type = string
+}
+
+variable "eks_target_group_arn" {
+  type = string
+}
+
+variable "cluster_endpoint" {
+  type        = string
+  description = "EKS cluster endpoint"
+}
+
+variable "cluster_certificate_authority_data" {
+  type        = string
+  description = "Base64 encoded certificate data for EKS cluster"
+  sensitive   = true
 }

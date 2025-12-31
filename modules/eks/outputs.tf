@@ -2,8 +2,19 @@ output "name" {
   value = aws_eks_cluster.ordering_eks_cluster.name
 }
 
+output "endpoint" {
+  description = "EKS cluster endpoint"
+  value       = aws_eks_cluster.ordering_eks_cluster.endpoint
+}
+
+output "certificate_authority_data" {
+  description = "Base64 encoded certificate data required to communicate with the cluster"
+  value       = aws_eks_cluster.ordering_eks_cluster.certificate_authority[0].data
+}
+
 output "node_group_name" {
-  value = aws_eks_node_group.ordering_eks_node_group.node_group_name
+  description = "Node group name (null for Auto Mode clusters)"
+  value       = null
 }
 
 output "eks_security_group_id" {
@@ -25,4 +36,8 @@ output "eks_load_balancer_arn" {
 
 output "eks_load_balancer_dns_name" {
   value = aws_lb.app_nlb.dns_name
+}
+
+output "eks_target_group_arn" {
+  value = aws_lb_target_group.app_tg.arn
 }

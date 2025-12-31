@@ -8,6 +8,14 @@ data "aws_iam_role" "lab_role" {
   name = "LabRole"
 }
 
+data "aws_iam_role" "node_role" {
+  name = "c191482a4935508l13237957t1w625622731-LabEksNodeRole-ITlYDSRWzEYU"
+}
+
+data "aws_iam_role" "cluster_role" {
+  name = "c191482a4935508l13237957t1w625622-LabEksClusterRole-7yOiFfZSRlqw"
+}
+
 # Get current AWS caller identity
 data "aws_caller_identity" "current" {}
 
@@ -25,8 +33,7 @@ data "aws_partition" "current" {}
 # IAM role ARNs for EKS cluster and node groups
 locals {
 
-  cluster_role_arn    = data.aws_iam_role.lab_role.arn
-  node_group_role_arn = data.aws_iam_role.lab_role.arn
+  cluster_role_arn    = data.aws_iam_role.cluster_role.arn
+  node_group_role_arn = data.aws_iam_role.node_role.arn
 
 }
-

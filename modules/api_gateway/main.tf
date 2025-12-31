@@ -100,23 +100,9 @@ resource "aws_lambda_permission" "apigw_authorizer_invoke" {
   source_arn    = "${aws_api_gateway_rest_api.api.execution_arn}/authorizers/*"
 }
 
-resource "null_resource" "wait_for_nlb_active" {
-  provisioner "local-exec" {
-    interpreter = ["bash", "-c"]
-    command = templatefile(
-      "${path.module}/scripts/wait_load_balancer.sh",
-      {
-        app_nlb_arn = var.load_balancer_arn
-      }
-    )
-  }
-}
-
 resource "aws_api_gateway_vpc_link" "catalog" {
   name        = "catalog-vpc-link-${var.service}"
   target_arns = [var.load_balancer_arn]
-
-  depends_on = [null_resource.wait_for_nlb_active]
 
   tags = local.api_gateway_tags
 }
@@ -134,6 +120,4 @@ resource "aws_api_gateway_integration" "proxy" {
   request_parameters = {
     "integration.request.path.proxy" = "method.request.path.proxy"
   }
-
-  depends_on = [null_resource.wait_for_nlb_active]
 }

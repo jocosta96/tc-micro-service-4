@@ -6,12 +6,14 @@ locals {
   }
 }
 
+
 resource "aws_eks_access_entry" "ordering_eks_access_entry" {
   cluster_name  = aws_eks_cluster.ordering_eks_cluster.name
   principal_arn = data.aws_iam_role.lab_role.arn
   type          = "STANDARD"
   tags          = local.access_entry_tags
 }
+
 
 resource "aws_eks_access_policy_association" "ordering_eks_access_policy_association" {
   cluster_name  = aws_eks_cluster.ordering_eks_cluster.name
@@ -22,7 +24,9 @@ resource "aws_eks_access_policy_association" "ordering_eks_access_policy_associa
     type = "cluster"
   }
 
-  depends_on = [aws_eks_access_entry.ordering_eks_access_entry]
+  depends_on = [
+    aws_eks_cluster.ordering_eks_cluster
+  ]
 }
 
 # Add access for voclabs role (current user role in AWS Learning Labs)
@@ -45,6 +49,7 @@ resource "aws_eks_access_policy_association" "ordering_eks_access_policy_associa
   depends_on = [aws_eks_access_entry.ordering_eks_access_entry_voclabs]
 }
 
+
 # Automatic kubeconfig update after EKS cluster creation
 resource "null_resource" "auto_kubeconfig_setup" {
 
@@ -52,7 +57,7 @@ resource "null_resource" "auto_kubeconfig_setup" {
   triggers = {
     cluster_endpoint = aws_eks_cluster.ordering_eks_cluster.endpoint
     cluster_name     = aws_eks_cluster.ordering_eks_cluster.name
-    access_entry     = aws_eks_access_entry.ordering_eks_access_entry_voclabs.principal_arn
+    policy_association = aws_eks_access_policy_association.ordering_eks_access_policy_association.policy_arn
   }
 
   # Update kubeconfig automatically
@@ -67,8 +72,6 @@ resource "null_resource" "auto_kubeconfig_setup" {
 
   depends_on = [
     aws_eks_cluster.ordering_eks_cluster,
-    aws_eks_node_group.ordering_eks_node_group,
-    aws_eks_access_entry.ordering_eks_access_entry_voclabs,
-    aws_eks_access_policy_association.ordering_eks_access_policy_association_voclabs
+    aws_eks_access_policy_association.ordering_eks_access_policy_association
   ]
 }

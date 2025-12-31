@@ -5,11 +5,10 @@
 # =============================================================================
 
 # Database ConfigMap - Using templatefile() to substitute variables from shared configuration
-resource "kubectl_manifest" "database_config" {
+resource "kubernetes_manifest" "database_config" {
+  
 
-  yaml_body = templatefile("${path.module}/manifests/cfm_database.yaml", {
-    cfm_name = "cfm-database-${var.service}"
-  })
+  manifest = yamldecode(templatefile("${path.module}/manifests/cfm_database.yaml", {cfm_name = "cfm-database-${var.service}"}))
 
 }
 
@@ -32,8 +31,10 @@ resource "aws_ssm_parameter" "valid_token_ssm" {
 
 
 # Application Secret
-resource "kubectl_manifest" "app_secret" {
-  yaml_body = templatefile(
+resource "kubernetes_manifest" "app_secret" {
+  
+
+  manifest = templatefile(
     "${path.module}/manifests/sec_app.yaml", {
       sec_name            = "sec-app-${var.service}",
       api_user_base64     = base64encode("ordering"),
@@ -42,7 +43,7 @@ resource "kubectl_manifest" "app_secret" {
   )
 
   depends_on = [
-    kubectl_manifest.database_config
+    kubernetes_manifest.database_config
   ]
 
 }
@@ -59,28 +60,30 @@ data "http" "metrics_components" {
   url = "https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.7.2/components.yaml"
 }
 
-resource "kubectl_manifest" "metrics_config" {
+resource "kubernetes_manifest" "metrics_config" {
+  
 
-  yaml_body = data.http.metrics_components.response_body
+  manifest = data.http.metrics_components.response_body
 
   depends_on = [
-    kubectl_manifest.app_secret,
+    kubernetes_manifest.app_secret,
   ]
 
 }
 
 
 # Application Service
-resource "kubectl_manifest" "app_service" {
+resource "kubernetes_manifest" "app_service" {
+  
 
-  yaml_body = templatefile("${path.module}/manifests/svc_app.yaml", {
+  manifest = yamldecode(templatefile("${path.module}/manifests/svc_app.yaml", {
     load_balancer_scheme = "internal",
     load_balancer_name   = "svc-app-lb-${var.service}",
     service_name         = "${var.service}",
     dpm_name             = "dpm-${var.service}"
-    target_group_arn     = var.eks_load_balancer_arn
+    target_group_arn     = var.eks_target_group_arn
     tgb_name             = "tgb-${var.service}"
-  })
+  }))
 
 }
 
@@ -90,9 +93,10 @@ resource "kubectl_manifest" "app_service" {
 # =============================================================================
 
 # Horizontal Pod Autoscaler
-resource "kubectl_manifest" "app_hpa" {
+resource "kubernetes_manifest" "app_hpa" {
+  
 
-  yaml_body = templatefile(
+  manifest = templatefile(
     "${path.module}/manifests/hpa_app.yaml", {
       hpa_name = "hpa-app-${var.service}",
       dpm_name = "dpm-${var.service}"
@@ -100,14 +104,15 @@ resource "kubectl_manifest" "app_hpa" {
   )
 
   depends_on = [
-    kubectl_manifest.metrics_config,
+    kubernetes_manifest.metrics_config,
   ]
 
 }
 
-resource "kubectl_manifest" "app_deployment" {
+resource "kubernetes_manifest" "app_deployment" {
+  
 
-  yaml_body = templatefile(
+  manifest = templatefile(
     "${path.module}/manifests/dpm_app.yaml", {
       dpm_name     = "dpm-${var.service}",
       dpm_image    = data.aws_ecr_image.service_image_by_digest.image_uri,
@@ -117,10 +122,10 @@ resource "kubectl_manifest" "app_deployment" {
   )
 
   depends_on = [
-    kubectl_manifest.app_service,
-    kubectl_manifest.app_secret,
-    kubectl_manifest.database_config,
-    kubectl_manifest.app_hpa,
+    kubernetes_manifest.app_service,
+    kubernetes_manifest.app_secret,
+    kubernetes_manifest.database_config,
+    kubernetes_manifest.app_hpa,
     data.aws_ecr_image.service_image
   ]
 

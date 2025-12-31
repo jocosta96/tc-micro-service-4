@@ -1,16 +1,7 @@
-data "http" "my_ip" {
-  url = "https://checkip.amazonaws.com"
-}
-
 locals {
   network_tags = {
     origin = "tc-micro-service-4/modules/eks/network.tf"
   }
-
-  # Use first CIDR from allowed_ip_cidrs if provided, otherwise empty list (no access)
-  deployer_cidr = length(var.allowed_ip_cidrs) > 0 ? var.allowed_ip_cidrs[0] : "${chomp(data.http.my_ip.response_body)}/32"
-
-  allowed_ip_cidrs = flatten(concat(var.allowed_ip_cidrs, [local.deployer_cidr]))
 }
 
 

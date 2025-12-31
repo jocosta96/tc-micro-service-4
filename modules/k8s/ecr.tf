@@ -5,6 +5,8 @@ locals {
   prefix = "dockerhub/${var.service}"
 }
 
+# manually created using the docker PAT 
+# {"username":"jocosta96","accessToken":"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"}
 data "aws_secretsmanager_secret" "dockerhub_creds" {
   name = "ecr-pullthroughcache/dockerhub-creds"
 }
