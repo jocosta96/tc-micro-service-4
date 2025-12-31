@@ -2,21 +2,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: "${load_balancer_name}"
+  namespace: "default"
 spec:
   ports:
   - port: 80
     targetPort: 8080
   selector:
     app: "${dpm_name}"
----
-apiVersion: elbv2.k8s.aws/v1beta1
-kind: TargetGroupBinding
-metadata:
-  name: "${tgb_name}"
-  namespace: "default"
-spec:
-  serviceRef:
-    name: "${load_balancer_name}"
-    port: 80
-  targetGroupARN: "${target_group_arn}"
-  targetType: "ip"

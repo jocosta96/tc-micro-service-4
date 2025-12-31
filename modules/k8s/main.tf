@@ -30,24 +30,6 @@ resource "aws_ssm_parameter" "valid_token_ssm" {
 }
 
 
-# Application Secret
-resource "kubernetes_manifest" "app_secret" {
-  
-
-  manifest = templatefile(
-    "${path.module}/manifests/sec_app.yaml", {
-      sec_name            = "sec-app-${var.service}",
-      api_user_base64     = base64encode("ordering"),
-      api_password_base64 = base64encode(random_password.basic_auth_password.result)
-    }
-  )
-
-  depends_on = [
-    kubernetes_manifest.database_config
-  ]
-
-}
-
 # =============================================================================
 # PHASE 3: SYSTEM COMPONENTS (Deploy cluster-wide services)
 # =============================================================================
@@ -56,20 +38,16 @@ resource "kubernetes_manifest" "app_secret" {
 
 # Fetch metrics-server components directly from the release URL instead of
 # bundling a copy of the YAML in the module.
-data "http" "metrics_components" {
-  url = "https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.7.2/components.yaml"
-}
-
-resource "kubernetes_manifest" "metrics_config" {
-  
-
-  manifest = data.http.metrics_components.response_body
-
-  depends_on = [
-    kubernetes_manifest.app_secret,
-  ]
-
-}
+#data "http" "metrics_components" {
+#  url = "https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.7.2/components.yaml"
+#}
+#
+#resource "kubernetes_manifest" "metrics_config" {
+#  
+#
+#  manifest = data.http.metrics_components.response_body
+#
+#}
 
 
 # Application Service
@@ -77,10 +55,19 @@ resource "kubernetes_manifest" "app_service" {
   
 
   manifest = yamldecode(templatefile("${path.module}/manifests/svc_app.yaml", {
-    load_balancer_scheme = "internal",
     load_balancer_name   = "svc-app-lb-${var.service}",
-    service_name         = "${var.service}",
     dpm_name             = "dpm-${var.service}"
+  }))
+
+}
+
+
+# Application Service
+resource "kubernetes_manifest" "load_balancer_bind" {
+  
+
+  manifest = yamldecode(templatefile("${path.module}/manifests/tgb_nlb.yaml", {
+    load_balancer_name   = "svc-app-lb-${var.service}",
     target_group_arn     = var.eks_target_group_arn
     tgb_name             = "tgb-${var.service}"
   }))
@@ -104,7 +91,7 @@ resource "kubernetes_manifest" "app_hpa" {
   )
 
   depends_on = [
-    kubernetes_manifest.metrics_config,
+#    kubernetes_manifest.metrics_config,
   ]
 
 }
@@ -123,7 +110,7 @@ resource "kubernetes_manifest" "app_deployment" {
 
   depends_on = [
     kubernetes_manifest.app_service,
-    kubernetes_manifest.app_secret,
+#    kubernetes_manifest.app_secret,
     kubernetes_manifest.database_config,
     kubernetes_manifest.app_hpa,
     data.aws_ecr_image.service_image

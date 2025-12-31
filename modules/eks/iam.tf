@@ -35,5 +35,4 @@ locals {
 
   cluster_role_arn    = data.aws_iam_role.cluster_role.arn
   node_group_role_arn = data.aws_iam_role.node_role.arn
-
 }
