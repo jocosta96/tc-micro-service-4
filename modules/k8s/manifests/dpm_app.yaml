@@ -21,7 +21,7 @@ spec:
             - containerPort: 8080
           readinessProbe:
             httpGet:
-              path: /health/db
+              path: /health
               port: 8080
             initialDelaySeconds: 60
             failureThreshold: 3
