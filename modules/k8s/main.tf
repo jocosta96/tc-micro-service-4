@@ -1,3 +1,20 @@
+locals {
+  cfm_name = "cfm-database-${var.service}"
+  sec_name            = "sec-app-${var.service}"
+  api_user_base64     = base64encode("ordering")
+  api_password_base64 = base64encode(random_password.basic_auth_password.result)
+  load_balancer_scheme = "internal"
+  load_balancer_name   = "svc-app-lb-${var.service}"
+  service_name         = "${var.service}"
+  dpm_name             = "dpm-${var.service}"
+  target_group_arn     = var.nlb_target_group_arn
+  tgb_name             = "tgb-${var.service}"
+  hpa_name = "hpa-app-${var.service}"
+  dpm_image    = data.aws_ecr_image.service_image_by_digest.image_uri
+  app_sec_name = "sec-app-${var.service}"
+  region  = var.DEFAULT_REGION
+}
+
 # manifests deployment tags now managed in centralized locals.tf
 
 # =============================================================================
@@ -8,7 +25,7 @@
 resource "kubectl_manifest" "database_config" {
 
   yaml_body = templatefile("${path.module}/manifests/cfm_database.yaml", {
-    cfm_name = "cfm-database-${var.service}"
+    cfm_name = local.cfm_name
   })
 
 }
@@ -35,9 +52,9 @@ resource "aws_ssm_parameter" "valid_token_ssm" {
 resource "kubectl_manifest" "app_secret" {
   yaml_body = templatefile(
     "${path.module}/manifests/sec_app.yaml", {
-      sec_name            = "sec-app-${var.service}",
-      api_user_base64     = base64encode("ordering"),
-      api_password_base64 = base64encode(random_password.basic_auth_password.result)
+      sec_name            = local.sec_name,
+      api_user_base64     = local.api_user_base64,
+      api_password_base64 = local.api_password_base64
     }
   )
 
@@ -74,14 +91,9 @@ resource "kubectl_manifest" "metrics_config" {
 resource "kubectl_manifest" "app_service" {
 
   yaml_body = templatefile("${path.module}/manifests/svc_app.yaml", {
-    load_balancer_scheme = "internal",
-    load_balancer_name   = "svc-app-lb-${var.service}",
-    service_name         = "${var.service}",
-    dpm_name             = "dpm-${var.service}"
-    target_group_arn     = var.eks_load_balancer_arn
-    tgb_name             = "tgb-${var.service}"
+    load_balancer_name   = local.load_balancer_name,
+    dpm_name             = local.dpm_name
   })
-
 }
 
 
@@ -94,8 +106,8 @@ resource "kubectl_manifest" "app_hpa" {
 
   yaml_body = templatefile(
     "${path.module}/manifests/hpa_app.yaml", {
-      hpa_name = "hpa-app-${var.service}",
-      dpm_name = "dpm-${var.service}"
+      hpa_name = local.hpa_name,
+      dpm_name = local.dpm_name
     }
   )
 
@@ -109,10 +121,12 @@ resource "kubectl_manifest" "app_deployment" {
 
   yaml_body = templatefile(
     "${path.module}/manifests/dpm_app.yaml", {
-      dpm_name     = "dpm-${var.service}",
-      dpm_image    = data.aws_ecr_image.service_image_by_digest.image_uri,
-      app_sec_name = "sec-app-${var.service}",
-      cfm_name     = "cfm-database-${var.service}"
+      dpm_name     = local.dpm_name,
+      dpm_image    = local.dpm_image,
+      app_sec_name = local.app_sec_name,
+      cfm_name     = local.cfm_name
+      target_group_arn     = local.target_group_arn
+      region  = local.region
     }
   )
 
@@ -124,4 +138,52 @@ resource "kubectl_manifest" "app_deployment" {
     data.aws_ecr_image.service_image
   ]
 
+}
+
+
+# Application Service
+resource "kubectl_manifest" "nlb_target_group_bind" {
+
+  yaml_body = templatefile("${path.module}/manifests/nlb_tgb.yaml", {
+    load_balancer_name   = local.load_balancer_name,
+    target_group_arn     = local.target_group_arn
+    tgb_name             = local.tgb_name
+  })
+
+  depends_on = [kubectl_manifest.app_deployment]
+}
+
+
+# the provider does hides most of logs, so we need to export the manifest to a file to see the logs
+#resource "local_file" "test_file" {
+#  filename = "${path.module}/manifests/dpm_app.export"
+#  content  = templatefile(
+#    "${path.module}/manifests/dpm_app.yaml", {
+#      dpm_name     = local.dpm_name,
+#      dpm_image    = local.dpm_image,
+#      app_sec_name = local.app_sec_name,
+#      cfm_name     = local.cfm_name
+#      target_group_arn     = local.target_group_arn
+#      region  = local.region
+#    }
+#  )
+#}   
+
+
+
+# Application Service
+resource "local_file" "app_service" {
+
+  filename = "${path.module}/manifests/svc_app.export"
+
+  content = templatefile("${path.module}/manifests/svc_app.yaml", {
+    load_balancer_scheme = local.load_balancer_scheme,
+    load_balancer_name   = local.load_balancer_name,
+    service_name         = local.service_name,
+    dpm_name             = local.dpm_name
+    target_group_arn     = local.target_group_arn
+    tgb_name             = local.tgb_name
+  })
+
+  depends_on = [helm_release.aws_lb_controller]
 }

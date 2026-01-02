@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: "${dpm_name}"
+  namespace: "default"
 spec:
   replicas: 1
   selector:
@@ -21,7 +22,7 @@ spec:
             - containerPort: 8080
           readinessProbe:
             httpGet:
-              path: /health/db
+              path: /health
               port: 8080
             initialDelaySeconds: 60
             failureThreshold: 3
@@ -68,7 +69,9 @@ spec:
           command: ["sh", "-c"]
           args:
             - |
-              # Start the application
-              echo "Starting FastAPI application..."
+              #!/bin/sh
+
+              # Start the app
               exec uvicorn src.main:app --host 0.0.0.0 --port 8080
+
 

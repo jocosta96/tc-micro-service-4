@@ -1,8 +1,10 @@
 terraform {
   backend "s3" {
-    bucket = "tc-ordering-state-bucket"
+    bucket = "tc-microservices-state-bucket"
     key    = "catalog-microservice.tfstate"
     region = "us-east-1"
+    encrypt = true
+    use_lockfile = true
   }
 }
 
@@ -44,8 +46,6 @@ module "catalog_database" {
   subnet_group_name = module.catalog_network.service_data_subnet_group_name
   allow_public_access = false
   key_pair_name     = var.ssh_key_pair_name
-
-  depends_on = [module.catalog_bastion]
 }
 
 
@@ -73,11 +73,7 @@ module "catalog_api_gateway" {
   region  = var.DEFAULT_REGION
   load_balancer_arn  = module.catalog_eks.eks_load_balancer_arn
   eks_load_balancer_dns_name = module.catalog_eks.eks_load_balancer_dns_name
-  depends_on = [
-    module.catalog_k8s
-  ]
 }
-
 
 module "catalog_k8s" {
   source = "../../modules/k8s"
@@ -91,7 +87,5 @@ module "catalog_k8s" {
   vpc_id                 = module.catalog_network.service_vpc_id
   vpc_cidr               = module.catalog_network.service_vpc_cidr_block
   node_security_group_id = module.catalog_eks.eks_node_security_group_id
-  eks_load_balancer_arn = module.catalog_eks.eks_load_balancer_arn
-  depends_on             = [module.catalog_eks]
+  nlb_target_group_arn   = module.catalog_eks.nlb_target_group_arn
 }
-

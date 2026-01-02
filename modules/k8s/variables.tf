@@ -35,6 +35,6 @@ variable "node_security_group_id" {
   type = string
 }
 
-variable "eks_load_balancer_arn" {
+variable "nlb_target_group_arn" {
   type = string
 }

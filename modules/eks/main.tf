@@ -10,7 +10,7 @@ resource "aws_eks_cluster" "ordering_eks_cluster" {
 
   name     = "${var.service}-eks-cluster"
   version  = "1.29"
-  role_arn = local.cluster_role_arn
+  role_arn = data.aws_iam_role.lab_role.arn
 
   enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
@@ -22,8 +22,8 @@ resource "aws_eks_cluster" "ordering_eks_cluster" {
     subnet_ids              = var.SUBNET_IDS
     security_group_ids      = [aws_security_group.ordering_eks_cluster_sg.id]
     endpoint_private_access = true
-    endpoint_public_access  = length(var.allowed_ip_cidrs) > 0
-    public_access_cidrs     = length(var.allowed_ip_cidrs) > 0 ? var.allowed_ip_cidrs : []
+    endpoint_public_access  = length(local.allowed_ip_cidrs) > 0
+    public_access_cidrs     = length(local.allowed_ip_cidrs) > 0 ? local.allowed_ip_cidrs : []
   }
 
   tags = local.eks_tags
@@ -37,7 +37,7 @@ resource "aws_eks_node_group" "ordering_eks_node_group" {
   tags            = local.eks_tags
   cluster_name    = aws_eks_cluster.ordering_eks_cluster.name
   node_group_name = "${var.service}-eks-node-group"
-  node_role_arn   = local.node_group_role_arn
+  node_role_arn   = data.aws_iam_role.lab_role.arn
   subnet_ids      = var.SUBNET_IDS
   instance_types  = [var.NODE_INSTANCE_TYPE] # Mudança: t3.small em vez de t2.micro
   capacity_type   = "ON_DEMAND"              # Mudança: ON_DEMAND em vez de SPOT
@@ -64,3 +64,4 @@ resource "aws_eks_addon" "cloudwatch_observability" {
   service_account_role_arn    = local.cluster_role_arn
   resolve_conflicts_on_create = "OVERWRITE"
 }
+

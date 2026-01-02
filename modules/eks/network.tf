@@ -1,133 +1,130 @@
+############################
+# Public IP discovery
+############################
+
 data "http" "my_ip" {
   url = "https://checkip.amazonaws.com"
 }
+
+############################
+# Locals
+############################
 
 locals {
   network_tags = {
     origin = "tc-micro-service-4/modules/eks/network.tf"
   }
 
-  # Use first CIDR from allowed_ip_cidrs if provided, otherwise empty list (no access)
   deployer_cidr = length(var.allowed_ip_cidrs) > 0 ? var.allowed_ip_cidrs[0] : "${chomp(data.http.my_ip.response_body)}/32"
 
   allowed_ip_cidrs = flatten(concat(var.allowed_ip_cidrs, [local.deployer_cidr]))
 }
 
+############################
+# EKS CLUSTER SECURITY GROUP
+############################
 
-# ===== SECURITY GROUPS =====
-
-# EKS Cluster Security Group
 resource "aws_security_group" "ordering_eks_cluster_sg" {
   name_prefix = "${var.service}-eks-cluster-"
   vpc_id      = var.VPC_ID
 
-  tags = merge(local.network_tags, { name = "${var.service}-eks-cluster-sg" })
+  tags = merge(local.network_tags, {
+    name = "${var.service}-eks-cluster-sg"
+  })
 }
 
-# Allow HTTPS access to EKS API server from allowed IP CIDRs
-resource "aws_vpc_security_group_ingress_rule" "eks_api_server_development" {
+# Public access to EKS API (restricted)
+resource "aws_vpc_security_group_ingress_rule" "eks_api_public" {
   count = length(local.allowed_ip_cidrs) > 0 ? 1 : 0
 
   security_group_id = aws_security_group.ordering_eks_cluster_sg.id
   cidr_ipv4         = local.deployer_cidr
   from_port         = 443
-  ip_protocol       = "tcp"
   to_port           = 443
+  ip_protocol       = "tcp"
 
-  tags = merge(local.network_tags, { name = "${var.service}-eks-api-development" })
+  tags = merge(local.network_tags, {
+    name = "${var.service}-eks-api-public"
+  })
 }
 
-# Allow traffic from worker nodes
-resource "aws_vpc_security_group_ingress_rule" "eks_cluster_ingress_node_https" {
+# Nodes → Control Plane (ALL TCP)
+resource "aws_vpc_security_group_ingress_rule" "eks_cluster_from_nodes" {
   security_group_id            = aws_security_group.ordering_eks_cluster_sg.id
   referenced_security_group_id = aws_security_group.ordering_eks_node_sg.id
-  from_port                    = 443
+  from_port                    = 0
+  to_port                      = 65535
   ip_protocol                  = "tcp"
-  to_port                      = 443
 
-  tags = merge(local.network_tags, { name = "${var.service}-eks-cluster-from-nodes" })
+  tags = merge(local.network_tags, {
+    name = "${var.service}-cluster-from-nodes-all"
+  })
 }
 
-# EKS Worker Node Security Group
+############################
+# EKS NODE SECURITY GROUP
+############################
+
 resource "aws_security_group" "ordering_eks_node_sg" {
   name_prefix = "${var.service}-eks-node-"
   vpc_id      = var.VPC_ID
 
-  tags = merge(local.network_tags, { name = "${var.service}-eks-node-sg" })
+  tags = merge(local.network_tags, {
+    name = "${var.service}-eks-node-sg"
+  })
 }
 
-# Allow worker nodes to communicate with cluster API server
-resource "aws_vpc_security_group_ingress_rule" "eks_node_ingress_cluster" {
+# Control Plane → Nodes (ALL TCP) REQUIRED
+resource "aws_vpc_security_group_ingress_rule" "eks_nodes_from_cluster" {
   security_group_id            = aws_security_group.ordering_eks_node_sg.id
   referenced_security_group_id = aws_security_group.ordering_eks_cluster_sg.id
-  from_port                    = 1025
-  ip_protocol                  = "tcp"
+  from_port                    = 0
   to_port                      = 65535
+  ip_protocol                  = "tcp"
 
-  tags = merge(local.network_tags, { name = "${var.service}-node-from-cluster" })
+  tags = merge(local.network_tags, {
+    name = "${var.service}-nodes-from-cluster-all"
+  })
 }
 
-# Allow NodePort access from allowed IP CIDRs (for NodePort services and direct pod access)
-resource "aws_vpc_security_group_ingress_rule" "eks_nodes_development" {
-  count = length(local.allowed_ip_cidrs) > 0 ? 1 : 0
-
-  security_group_id = aws_security_group.ordering_eks_node_sg.id
-  cidr_ipv4         = local.deployer_cidr
-  from_port         = 30000
-  ip_protocol       = "tcp"
-  to_port           = 32767
-
-  tags = merge(local.network_tags, { name = "${var.service}-eks-nodeport-development" })
-}
-
-# Allow worker nodes to communicate with each other
+# Node ↔ Node (ALL traffic)
 resource "aws_vpc_security_group_ingress_rule" "eks_node_ingress_self" {
   security_group_id            = aws_security_group.ordering_eks_node_sg.id
   referenced_security_group_id = aws_security_group.ordering_eks_node_sg.id
   ip_protocol                  = "-1"
 
-  tags = merge(local.network_tags, { name = "${var.service}-node-to-node" })
+  tags = merge(local.network_tags, {
+    name = "${var.service}-node-to-node-all"
+  })
 }
 
-# Egress rules - Allow all outbound traffic
+# Optional: NodePort access (dev only)
+resource "aws_vpc_security_group_ingress_rule" "eks_nodes_nodeport_dev" {
+  count = length(local.allowed_ip_cidrs) > 0 ? 1 : 0
+
+  security_group_id = aws_security_group.ordering_eks_node_sg.id
+  cidr_ipv4         = local.deployer_cidr
+  from_port         = 30000
+  to_port           = 32767
+  ip_protocol       = "tcp"
+
+  tags = merge(local.network_tags, {
+    name = "${var.service}-nodeport-dev"
+  })
+}
+
+############################
+# EGRESS RULES
+############################
+
 resource "aws_vpc_security_group_egress_rule" "eks_cluster_egress" {
   security_group_id = aws_security_group.ordering_eks_cluster_sg.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
-
-  tags = merge(local.network_tags, { name = "${var.service}-cluster-egress" })
 }
 
 resource "aws_vpc_security_group_egress_rule" "eks_node_egress" {
   security_group_id = aws_security_group.ordering_eks_node_sg.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
-
-  tags = merge(local.network_tags, { name = "${var.service}-node-egress" })
-}
-
-resource "aws_lb" "app_nlb" {
-  name               = "${var.service}-nlb"
-  internal           = true
-  load_balancer_type = "network"
-  subnets            = var.SUBNET_IDS
-}
-
-resource "aws_lb_target_group" "app_tg" {
-  name        = "${var.service}-tg"
-  port        = 8080
-  protocol    = "TCP"
-  vpc_id      = var.VPC_ID
-  target_type = "ip" # Recommended: routes directly to Pod IPs
-}
-
-resource "aws_lb_listener" "app_listener" {
-  load_balancer_arn = aws_lb.app_nlb.arn
-  port              = 80
-  protocol          = "TCP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.app_tg.arn
-  }
 }

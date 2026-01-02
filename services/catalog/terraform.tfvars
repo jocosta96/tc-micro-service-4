@@ -1,2 +1,2 @@
-allowed_ip_cidrs = [ "200.106.192.130/32" ]
+allowed_ip_cidrs = []
 ssh_key_pair_name = "aws_key_pair"

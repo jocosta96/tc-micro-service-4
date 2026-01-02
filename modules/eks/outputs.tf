@@ -26,3 +26,7 @@ output "eks_load_balancer_arn" {
 output "eks_load_balancer_dns_name" {
   value = aws_lb.app_nlb.dns_name
 }
+
+output "nlb_target_group_arn" {
+  value = aws_lb_target_group.app_tg.arn
+}

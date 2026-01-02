@@ -5,6 +5,8 @@ locals {
   prefix = "dockerhub/${var.service}"
 }
 
+# manually created using the docker PAT 
+# {"username":"jocosta96","accessToken":"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"}
 data "aws_secretsmanager_secret" "dockerhub_creds" {
   name = "ecr-pullthroughcache/dockerhub-creds"
 }
@@ -59,6 +61,8 @@ resource "terraform_data" "ecr_warmup" {
       sleep 10
     EOT
   }
+
+  depends_on = [ aws_ecr_pull_through_cache_rule.dockerhub, aws_ecr_repository_creation_template.dockerhub_template ]
 }
 
 

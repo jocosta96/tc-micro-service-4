@@ -1,4 +1,4 @@
-name: "tc-ordering-state-bucket"
+name: "tc-microservices-state-bucket"
 
 on:
   push:
@@ -44,7 +44,7 @@ jobs:
 
       - name: Create S3 bucket if it doesn't exist
         run: |
-          BUCKET_NAME="tc-ordering-state-bucket"
+          BUCKET_NAME="tc-microservices-state-bucket"
           REGION="us-east-1"
 
           # Check if the bucket exists using s3api head-bucket

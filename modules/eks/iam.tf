@@ -8,6 +8,16 @@ data "aws_iam_role" "lab_role" {
   name = "LabRole"
 }
 
+# the provided node role does not has all the permissions needed for the node group + nlb
+# the lab env is very restrictive on iam so ill proceed usig this role for now
+data "aws_iam_role" "node_role" {
+  name = "LabRole"
+}
+
+data "aws_iam_role" "cluster_role" {
+  name = "c190909a4920103l13290273t1w662621-LabEksClusterRole-W1aKy5YEmwff"
+}
+
 # Get current AWS caller identity
 data "aws_caller_identity" "current" {}
 
@@ -25,8 +35,8 @@ data "aws_partition" "current" {}
 # IAM role ARNs for EKS cluster and node groups
 locals {
 
-  cluster_role_arn    = data.aws_iam_role.lab_role.arn
-  node_group_role_arn = data.aws_iam_role.lab_role.arn
-
+  cluster_role_arn    = data.aws_iam_role.cluster_role.arn
+  node_group_role_arn = data.aws_iam_role.node_role.arn
 }
+
 
