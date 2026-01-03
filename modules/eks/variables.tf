@@ -67,3 +67,15 @@ variable "allowed_ip_cidrs" {
   type        = list(string)
   default     = []
 }
+
+variable "bastion_instance_type" {
+  description = "Instance type for bastion host"
+  type        = string
+  default     = "t3.nano"
+}
+
+variable "bastion_key_name" {
+  description = "Key pair name for bastion host"
+  type        = string
+  default     = ""
+}

@@ -17,3 +17,12 @@ output "service_private_subnet_ids" {
 output "service_data_subnet_group_name" {
   value = aws_db_subnet_group.ordering_data_subnet_group.name
 }
+
+output "service_all_subnet_cdirs" {
+  value = flatten(
+    [
+      aws_subnet.ordering_subnet[*].cidr_block,
+      aws_subnet.database_subnet[*].cidr_block
+    ]
+  )
+}

@@ -9,7 +9,7 @@ locals {
 resource "aws_eks_cluster" "ordering_eks_cluster" {
 
   name     = "${var.service}-eks-cluster"
-  version  = "1.29"
+  version  = "1.32"
   role_arn = data.aws_iam_role.lab_role.arn
 
   enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
@@ -58,10 +58,5 @@ resource "aws_eks_node_group" "ordering_eks_node_group" {
   depends_on = [aws_eks_cluster.ordering_eks_cluster]
 }
 
-resource "aws_eks_addon" "cloudwatch_observability" {
-  cluster_name                = aws_eks_cluster.ordering_eks_cluster.name
-  addon_name                  = "amazon-cloudwatch-observability"
-  service_account_role_arn    = local.cluster_role_arn
-  resolve_conflicts_on_create = "OVERWRITE"
-}
+
 

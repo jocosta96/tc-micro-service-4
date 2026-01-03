@@ -80,10 +80,6 @@ resource "kubectl_manifest" "metrics_config" {
 
   yaml_body = data.http.metrics_components.response_body
 
-  depends_on = [
-    kubectl_manifest.app_secret,
-  ]
-
 }
 
 
@@ -150,7 +146,10 @@ resource "kubectl_manifest" "nlb_target_group_bind" {
     tgb_name             = local.tgb_name
   })
 
-  depends_on = [kubectl_manifest.app_deployment]
+  depends_on = [
+    kubectl_manifest.app_deployment,
+    helm_release.aws_lb_controller
+  ]
 }
 
 

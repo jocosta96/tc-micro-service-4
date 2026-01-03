@@ -88,4 +88,5 @@ module "catalog_k8s" {
   vpc_cidr               = module.catalog_network.service_vpc_cidr_block
   node_security_group_id = module.catalog_eks.eks_node_security_group_id
   nlb_target_group_arn   = module.catalog_eks.nlb_target_group_arn
+  depends_on = [ module.catalog_eks ]
 }
