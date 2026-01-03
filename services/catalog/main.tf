@@ -64,6 +64,8 @@ module "catalog_eks" {
     max_size     = 3
     min_size     = 1
   }
+  key_pair_name = var.ssh_key_pair_name
+  bastion_security_group_id = module.catalog_bastion.security_group_id
 }
 
 module "catalog_api_gateway" {

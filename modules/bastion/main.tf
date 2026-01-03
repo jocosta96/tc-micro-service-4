@@ -1,7 +1,15 @@
+data "http" "my_ip" {
+  url = "https://checkip.amazonaws.com"
+}
+
 locals {
   bastion_tags = {
     origin = "tc-micro-service-4/modules/bastion/main.tf"
   }
+
+  deployer_cidr = length(var.allowed_ip_cidrs) > 0 ? var.allowed_ip_cidrs[0] : "${chomp(data.http.my_ip.response_body)}/32"
+
+  allowed_ip_cidrs = flatten(concat(var.allowed_ip_cidrs, [local.deployer_cidr]))
 }
 
 # Security group for bastion host
@@ -15,7 +23,7 @@ resource "aws_security_group" "bastion_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = length(var.allowed_ip_cidrs) > 0 ? var.allowed_ip_cidrs : ["0.0.0.0/0"]
+    cidr_blocks = local.allowed_ip_cidrs
     description = "SSH access from allowed IPs"
   }
 

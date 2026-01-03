@@ -68,14 +68,12 @@ variable "allowed_ip_cidrs" {
   default     = []
 }
 
-variable "bastion_instance_type" {
-  description = "Instance type for bastion host"
+variable "key_pair_name" {
+  description = "The name of the EC2 SSH key pair for node access"
   type        = string
-  default     = "t3.nano"
 }
 
-variable "bastion_key_name" {
-  description = "Key pair name for bastion host"
+variable "bastion_security_group_id" {
+  description = "The ID of the bastion security group"
   type        = string
-  default     = ""
 }

@@ -54,6 +54,11 @@ resource "aws_eks_node_group" "ordering_eks_node_group" {
     max_unavailable = 1
   }
 
+  remote_access {
+    ec2_ssh_key = var.key_pair_name
+    source_security_group_ids = [var.bastion_security_group_id]
+  }
+
   # Aguardar cluster estar pronto
   depends_on = [aws_eks_cluster.ordering_eks_cluster]
 }
