@@ -59,7 +59,7 @@ resource "aws_vpc_security_group_ingress_rule" "nlb_node_ingress" {
   referenced_security_group_id = aws_security_group.ordering_eks_node_sg.id
   ip_protocol                  = "-1"
 
-  tags = merge(local.network_tags, { name = "${var.service}-node-to-node" })
+  tags = merge(local.network_tags, { name = "${var.service}-node-to-nlb" })
 }
 
 #load balancer to cluster (ALL traffic)
@@ -68,7 +68,7 @@ resource "aws_vpc_security_group_ingress_rule" "nlb_cluster_ingress" {
   referenced_security_group_id = aws_security_group.ordering_eks_cluster_sg.id
   ip_protocol                  = "-1"
 
-  tags = merge(local.network_tags, { name = "${var.service}-node-to-node" })
+  tags = merge(local.network_tags, { name = "${var.service}-cluster-to-nlb" })
 }
 
 # Control Plane ← Nodes (ALL TCP) REQUIRED
@@ -78,7 +78,7 @@ resource "aws_vpc_security_group_ingress_rule" "eks_cluster_from_nodes" {
   ip_protocol                  = "-1"
 
   tags = merge(local.network_tags, {
-    name = "${var.service}-cluster-from-nodes-all"
+    name = "${var.service}-node-cluster"
   })
 }
 
@@ -89,7 +89,7 @@ resource "aws_vpc_security_group_ingress_rule" "eks_nodes_from_cluster" {
   ip_protocol                  = "-1"
 
   tags = merge(local.network_tags, {
-    name = "${var.service}-nodes-from-cluster-all"
+    name = "${var.service}-cluster-to-node"
   })
 }
 
@@ -100,7 +100,7 @@ resource "aws_vpc_security_group_ingress_rule" "eks_node_ingress_self" {
   ip_protocol                  = "-1"
 
   tags = merge(local.network_tags, {
-    name = "${var.service}-node-to-node-all"
+    name = "${var.service}-node-to-node"
   })
 }
 

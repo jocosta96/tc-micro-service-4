@@ -16,7 +16,6 @@ variable "subnet_ids" {
 variable "allowed_ip_cidrs" {
   description = "List of CIDR blocks allowed to SSH to bastion"
   type        = list(string)
-  default     = []
 }
 
 variable "key_pair_name" {

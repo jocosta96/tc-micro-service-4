@@ -1,27 +1,3 @@
-resource "aws_security_group" "nlb_sg" {
-  name_prefix = "${var.service}-nlb-"
-  vpc_id      = var.VPC_ID
-
-  tags = merge(local.network_tags, { name = "${var.service}-nlb-sg" })
-}
-
-
-resource "aws_vpc_security_group_egress_rule" "nlb_egress" {
-  security_group_id = aws_security_group.nlb_sg.id
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = "-1"
-
-  tags = merge(local.network_tags, { name = "${var.service}-nlb-egress" })
-}
-
-resource "aws_vpc_security_group_ingress_rule" "nlb_node_ingress" {
-  security_group_id            = aws_security_group.nlb_sg.id
-  referenced_security_group_id = aws_security_group.ordering_eks_node_sg.id
-  ip_protocol                  = "-1"
-
-  tags = merge(local.network_tags, { name = "${var.service}-node-to-node" })
-}
-
 resource "aws_lb" "app_nlb" {
   name               = "${var.service}-nlb"
   internal           = true
