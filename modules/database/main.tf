@@ -51,6 +51,9 @@ resource "aws_db_instance" "ordering_database" {
   performance_insights_enabled = false
   monitoring_interval          = 0
 
+  # Enable database logging
+  enabled_cloudwatch_logs_exports = ["postgresql"]
+
   # Deletion protection and cleanup
   deletion_protection      = false
   delete_automated_backups = true

@@ -151,38 +151,3 @@ resource "kubectl_manifest" "nlb_target_group_bind" {
     helm_release.aws_lb_controller
   ]
 }
-
-
-# the provider does hides most of logs, so we need to export the manifest to a file to see the logs
-#resource "local_file" "test_file" {
-#  filename = "${path.module}/manifests/dpm_app.export"
-#  content  = templatefile(
-#    "${path.module}/manifests/dpm_app.yaml", {
-#      dpm_name     = local.dpm_name,
-#      dpm_image    = local.dpm_image,
-#      app_sec_name = local.app_sec_name,
-#      cfm_name     = local.cfm_name
-#      target_group_arn     = local.target_group_arn
-#      region  = local.region
-#    }
-#  )
-#}   
-
-
-
-# Application Service
-resource "local_file" "app_service" {
-
-  filename = "${path.module}/manifests/svc_app.export"
-
-  content = templatefile("${path.module}/manifests/svc_app.yaml", {
-    load_balancer_scheme = local.load_balancer_scheme,
-    load_balancer_name   = local.load_balancer_name,
-    service_name         = local.service_name,
-    dpm_name             = local.dpm_name
-    target_group_arn     = local.target_group_arn
-    tgb_name             = local.tgb_name
-  })
-
-  depends_on = [helm_release.aws_lb_controller]
-}

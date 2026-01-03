@@ -65,6 +65,12 @@ resource "aws_instance" "bastion" {
   # IAM instance profile for SSM access
   iam_instance_profile = aws_iam_instance_profile.bastion_profile.name
 
+  # Enforce IMDSv2
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
   user_data = <<-EOF
     #!/bin/bash
     yum update -y
