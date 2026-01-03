@@ -10,21 +10,22 @@ resource "aws_lb" "app_nlb" {
 resource "aws_lb_target_group" "app_tg" {
   name        = "${var.service}-tg"
   port        = 8080
-  protocol    = "TCP"        # NLB listener stays TCP
+  protocol    = "TCP"
   vpc_id      = var.VPC_ID
   target_type = "ip"
 
   health_check {
-    protocol            = "HTTP"        # MUST be HTTP
-    path                = "/health"     # Matches your readiness probe
-    port                = "traffic-port" # same as target port
-    matcher             = "200-299"     # Accept all 2xx
+    protocol            = "HTTP"
+    path                = "/health"
+    port                = "traffic-port"
+    matcher             = "200-299"
     healthy_threshold   = 2
     unhealthy_threshold = 2
-    timeout             = 10            # allow some response time
+    timeout             = 10
     interval            = 30
   }
 }
+
 
 
 resource "aws_lb_listener" "app_listener" {
@@ -34,8 +35,11 @@ resource "aws_lb_listener" "app_listener" {
 
   default_action {
     type             = "forward"
+    # amazonq-ignore-next-line
     target_group_arn = aws_lb_target_group.app_tg.arn
   }
+
+  depends_on = [ aws_lb_target_group.app_tg ]
 }
 
 

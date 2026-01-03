@@ -20,7 +20,10 @@ resource "aws_eks_cluster" "ordering_eks_cluster" {
 
   vpc_config {
     subnet_ids              = var.SUBNET_IDS
-    security_group_ids      = [aws_security_group.ordering_eks_cluster_sg.id]
+    security_group_ids      = [
+      aws_security_group.ordering_eks_cluster_sg.id, 
+      aws_security_group.ordering_eks_node_sg.id
+    ]
     endpoint_private_access = true
     endpoint_public_access  = length(local.allowed_ip_cidrs) > 0
     public_access_cidrs     = length(local.allowed_ip_cidrs) > 0 ? local.allowed_ip_cidrs : []
@@ -56,8 +59,12 @@ resource "aws_eks_node_group" "ordering_eks_node_group" {
 
   remote_access {
     ec2_ssh_key = var.key_pair_name
-    source_security_group_ids = [var.bastion_security_group_id]
+    source_security_group_ids = [
+      var.bastion_security_group_id, 
+      aws_security_group.ordering_eks_node_sg.id
+    ]
   }
+
 
   # Aguardar cluster estar pronto
   depends_on = [aws_eks_cluster.ordering_eks_cluster]
