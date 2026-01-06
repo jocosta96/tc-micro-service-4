@@ -9,6 +9,9 @@ data "http" "my_ip" {
 # Get EKS cluster information to access the cluster security group
 data "aws_eks_cluster" "cluster" {
   name = "${var.service}-eks-cluster"
+  depends_on = [
+    aws_eks_cluster.ordering_eks_cluster
+  ]
 }
 
 ############################

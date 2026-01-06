@@ -108,7 +108,7 @@ data "aws_ami" "amazon_linux" {
 
 resource "aws_key_pair" "bastion_key_pair" {
   key_name   = var.key_pair_name
-  public_key = file("~/.ssh/${var.key_pair_name}.pub")
+  public_key = var.key_pair_value
 }
 
 resource "aws_ssm_parameter" "bastion_public_ip" {

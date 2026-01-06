@@ -52,7 +52,7 @@ provider "kubectl" {
 resource "terraform_data" "refresh_kubectl" {
   input = {filename = "~/.kube/config"}
   provisioner "local-exec" {
-    command = "aws eks update-kubeconfig --region ${var.DEFAULT_REGION} --name ${module.catalog_eks.name} --alias ${var.service}-cluster"
+    command = "aws eks update-kubeconfig --region ${var.CATALOG_DEFAULT_REGION} --name ${module.catalog_eks.name} --alias catalog-cluster"
   }
   triggers_replace = timestamp()
 }

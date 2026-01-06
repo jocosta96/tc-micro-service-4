@@ -1,4 +1,4 @@
-name: "catalog-microservice-infra"
+name: "order-microservice-infra"
 
 on:
   push:
@@ -6,15 +6,15 @@ on:
       - main
     paths:
       - 'modules/*.tf'
-      - 'services/catalog/*.tf'
-      - '.github/workflows/deploy_catalog_infra.yml'
+      - 'services/order/*.tf'
+      - '.github/workflows/deploy_order_infra.yml'
   pull_request:
     branches:
       - main
     paths:
       - 'modules/*.tf'
-      - 'services/catalog/*.tf'
-      - '.github/workflows/deploy_catalog_infra.yml'
+      - 'services/order/*.tf'
+      - '.github/workflows/deploy_order_infra.yml'
 
 env:
   TF_VERSION: "1.14.1"
@@ -24,7 +24,7 @@ env:
   GH_EVENT_NAME: ${{ github.event_name }}
   GH_REF: ${{ github.ref }}
   GH_REF_NAME: ${{ github.ref_name }}
-  TF_VAR_catalog_ssh_key_pair_value: ${{ secrets.CATALOG_SSH_KEY_PAIR_VALUE }}
+  TF_VAR_order_ssh_key_pair_value: ${{ secrets.ORDER_SSH_KEY_PAIR_VALUE }}
 
 jobs:
   terraform:
@@ -39,7 +39,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./services/catalog
+        working-directory: ./services/order
 
     steps:
       - name: Checkout

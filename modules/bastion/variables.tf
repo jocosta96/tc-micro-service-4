@@ -23,6 +23,11 @@ variable "key_pair_name" {
   type        = string
 }
 
+variable "key_pair_value" {
+  description = "Name of the EC2 key pair for SSH access"
+  type        = string
+}
+
 variable "instance_type" {
   description = "EC2 instance type for bastion host"
   type        = string

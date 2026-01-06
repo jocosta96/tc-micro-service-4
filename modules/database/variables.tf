@@ -89,8 +89,3 @@ variable "subnet_group_name" {
 variable "allow_public_access" {
   type = bool
 }
-
-variable "key_pair_name" {
-  description = "The name of the key pair for the database"
-  type        = string
-}
