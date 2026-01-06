@@ -25,7 +25,8 @@ env:
   GH_REF: ${{ github.ref }}
   GH_REF_NAME: ${{ github.ref_name }}
   TF_VAR_catalog_ssh_key_pair_value: ${{ secrets.CATALOG_SSH_KEY_PAIR_VALUE }}
-
+  TF_VAR_catalog_app_image_tag: ${{ vars.TF_VAR_CATALOG_APP_IMAGE_TAG }}
+  TF_VAR_catalog_app_image_name: ${{ vars.TF_VAR_CATALOG_APP_IMAGE_NAMW }}
 jobs:
   terraform:
     name: "Terraform"

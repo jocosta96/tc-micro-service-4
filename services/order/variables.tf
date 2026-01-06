@@ -22,3 +22,11 @@ variable "order_allowed_ip_cidrs" {
   type        = list(string)
   default     = []
 }
+
+variable "order_app_image_name" {
+  type        = string
+}
+
+variable "order_app_image_tag" {
+  type        = string
+}

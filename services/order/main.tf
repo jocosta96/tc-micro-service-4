@@ -84,8 +84,8 @@ module "order_k8s" {
   DEFAULT_REGION         = "us-east-1"
   cluster_name           = module.order_eks.name
   node_group_name        = module.order_eks.node_group_name
-  image_name             = "jocosta96/soat-challenge"
-  image_tag              = "latest"
+  image_name             = var.order_app_image_name
+  image_tag              = var.order_app_image_tag
   vpc_id                 = module.order_network.service_vpc_id
   vpc_cidr               = module.order_network.service_vpc_cidr_block
   node_security_group_id = module.order_eks.eks_node_security_group_id
