@@ -7,7 +7,7 @@ variable "ORDER_DEFAULT_REGION" {
 variable "order_ssh_key_pair_name" {
   description = "Name of the EC2 key pair for bastion host SSH access"
   type        = string
-  default = "order_aws_key_pair"
+  default     = "order_aws_key_pair"
 }
 
 variable "order_ssh_key_pair_value" {

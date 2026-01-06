@@ -1,18 +1,18 @@
 locals {
-  cfm_name = "cfm-database-${var.service}"
-  sec_name            = "sec-app-${var.service}"
-  api_user_base64     = base64encode("ordering")
-  api_password_base64 = base64encode(random_password.basic_auth_password.result)
+  cfm_name             = "cfm-database-${var.service}"
+  sec_name             = "sec-app-${var.service}"
+  api_user_base64      = base64encode("ordering")
+  api_password_base64  = base64encode(random_password.basic_auth_password.result)
   load_balancer_scheme = "internal"
   load_balancer_name   = "svc-app-lb-${var.service}"
-  service_name         = "${var.service}"
+  service_name         = var.service
   dpm_name             = "dpm-${var.service}"
   target_group_arn     = var.nlb_target_group_arn
   tgb_name             = "tgb-${var.service}"
-  hpa_name = "hpa-app-${var.service}"
-  dpm_image    = data.aws_ecr_image.service_image_by_digest.image_uri
-  app_sec_name = "sec-app-${var.service}"
-  region  = var.DEFAULT_REGION
+  hpa_name             = "hpa-app-${var.service}"
+  dpm_image            = data.aws_ecr_image.service_image_by_digest.image_uri
+  app_sec_name         = "sec-app-${var.service}"
+  region               = var.DEFAULT_REGION
 }
 
 # manifests deployment tags now managed in centralized locals.tf
@@ -87,8 +87,8 @@ resource "kubectl_manifest" "metrics_config" {
 resource "kubectl_manifest" "app_service" {
 
   yaml_body = templatefile("${path.module}/manifests/svc_app.yaml", {
-    load_balancer_name   = local.load_balancer_name,
-    dpm_name             = local.dpm_name
+    load_balancer_name = local.load_balancer_name,
+    dpm_name           = local.dpm_name
   })
 }
 
@@ -117,12 +117,12 @@ resource "kubectl_manifest" "app_deployment" {
 
   yaml_body = templatefile(
     "${path.module}/manifests/dpm_app.yaml", {
-      dpm_name     = local.dpm_name,
-      dpm_image    = local.dpm_image,
-      app_sec_name = local.app_sec_name,
-      cfm_name     = local.cfm_name
-      target_group_arn     = local.target_group_arn
-      region  = local.region
+      dpm_name         = local.dpm_name,
+      dpm_image        = local.dpm_image,
+      app_sec_name     = local.app_sec_name,
+      cfm_name         = local.cfm_name
+      target_group_arn = local.target_group_arn
+      region           = local.region
     }
   )
 
@@ -141,9 +141,9 @@ resource "kubectl_manifest" "app_deployment" {
 resource "kubectl_manifest" "nlb_target_group_bind" {
 
   yaml_body = templatefile("${path.module}/manifests/nlb_tgb.yaml", {
-    load_balancer_name   = local.load_balancer_name,
-    target_group_arn     = local.target_group_arn
-    tgb_name             = local.tgb_name
+    load_balancer_name = local.load_balancer_name,
+    target_group_arn   = local.target_group_arn
+    tgb_name           = local.tgb_name
   })
 
   depends_on = [

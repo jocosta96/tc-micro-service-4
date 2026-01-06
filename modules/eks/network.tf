@@ -23,7 +23,7 @@ locals {
     origin = "tc-micro-service-4/modules/eks/network.tf"
   }
 
-  deployer_cidr = length(var.allowed_ip_cidrs) > 0 ? var.allowed_ip_cidrs[0] : "${chomp(data.http.my_ip.response_body)}/32"
+  deployer_cidr  = length(var.allowed_ip_cidrs) > 0 ? var.allowed_ip_cidrs[0] : "${chomp(data.http.my_ip.response_body)}/32"
   eks_managed_sg = data.aws_eks_cluster.cluster.vpc_config[0].cluster_security_group_id
 
   allowed_ip_cidrs = flatten(concat(var.allowed_ip_cidrs, [local.deployer_cidr]))

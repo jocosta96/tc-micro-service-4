@@ -7,7 +7,7 @@ variable "CATALOG_DEFAULT_REGION" {
 variable "catalog_ssh_key_pair_name" {
   description = "Name of the EC2 key pair for bastion host SSH access"
   type        = string
-  default = "catalog_aws_key_pair"
+  default     = "catalog_aws_key_pair"
 }
 
 variable "catalog_ssh_key_pair_value" {

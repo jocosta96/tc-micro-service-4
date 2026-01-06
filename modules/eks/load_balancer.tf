@@ -1,9 +1,9 @@
 resource "aws_lb" "app_nlb" {
-  name               = "${var.service}-nlb"
-  internal           = true
-  load_balancer_type = "network"
-  subnets            = var.SUBNET_IDS
-  security_groups   = [aws_security_group.nlb_sg.id]
+  name                                                         = "${var.service}-nlb"
+  internal                                                     = true
+  load_balancer_type                                           = "network"
+  subnets                                                      = var.SUBNET_IDS
+  security_groups                                              = [aws_security_group.nlb_sg.id]
   enforce_security_group_inbound_rules_on_private_link_traffic = "off"
 }
 
@@ -34,12 +34,12 @@ resource "aws_lb_listener" "app_listener" {
   protocol          = "TCP"
 
   default_action {
-    type             = "forward"
+    type = "forward"
     # amazonq-ignore-next-line
     target_group_arn = aws_lb_target_group.app_tg.arn
   }
 
-  depends_on = [ aws_lb_target_group.app_tg ]
+  depends_on = [aws_lb_target_group.app_tg]
 }
 
 

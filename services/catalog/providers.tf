@@ -2,23 +2,23 @@ terraform {
   required_version = ">= 1.12.2"
   required_providers {
     aws = {
-      source = "hashicorp/aws"
+      source  = "hashicorp/aws"
       version = "6.27.0"
     }
     kubectl = {
       source  = "gavinbunney/kubectl"
       version = ">= 1.7.0"
     }
-#    kubernetes = {
-#      source  = "hashicorp/kubernetes"
-#      version = "2.36.0"
-#    }
+    #    kubernetes = {
+    #      source  = "hashicorp/kubernetes"
+    #      version = "2.36.0"
+    #    }
     null = {
       source  = "hashicorp/null"
       version = "3.2.3"
     }
     helm = {
-      source = "hashicorp/helm"
+      source  = "hashicorp/helm"
       version = "3.1.1"
     }
   }
@@ -39,7 +39,7 @@ provider "kubectl" {
   host                   = data.aws_eks_cluster.cluster.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
   load_config_file       = true
-  token = data.aws_eks_cluster_auth.auth.token
+  token                  = data.aws_eks_cluster_auth.auth.token
 }
 
 #provider "kubernetes" {
@@ -50,7 +50,7 @@ provider "kubectl" {
 
 
 resource "terraform_data" "refresh_kubectl" {
-  input = {filename = "~/.kube/config"}
+  input = { filename = "~/.kube/config" }
   provisioner "local-exec" {
     command = "aws eks update-kubeconfig --region ${var.CATALOG_DEFAULT_REGION} --name ${module.catalog_eks.name} --alias catalog-cluster"
   }

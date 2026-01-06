@@ -59,7 +59,7 @@ resource "aws_instance" "bastion" {
   subnet_id              = var.subnet_ids[0] # Use first public subnet
 
   # Ephemeral environment settings
-  disable_api_termination         = false
+  disable_api_termination              = false
   instance_initiated_shutdown_behavior = "terminate"
 
   # IAM instance profile for SSM access
@@ -84,8 +84,8 @@ resource "aws_instance" "bastion" {
   EOF
 
   tags = merge(local.bastion_tags, {
-    Name      = "${var.service}-bastion"
-    Ephemeral = "true"
+    Name       = "${var.service}-bastion"
+    Ephemeral  = "true"
     AutoDelete = "true"
   })
 }

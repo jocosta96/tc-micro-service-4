@@ -1,9 +1,9 @@
 terraform {
   backend "s3" {
-    bucket = "tc-microservices-state-bucket"
-    key    = "catalog-microservice.tfstate"
-    region = "us-east-1"
-    encrypt = true
+    bucket       = "tc-microservices-state-bucket"
+    key          = "catalog-microservice.tfstate"
+    region       = "us-east-1"
+    encrypt      = true
     use_lockfile = true
   }
 }
@@ -23,14 +23,14 @@ module "catalog_network" {
 module "catalog_bastion" {
   source = "../../modules/bastion"
 
-  service           = "catalog"
-  vpc_id            = module.catalog_network.service_vpc_id
-  subnet_ids        = module.catalog_network.service_subnet_ids
-  allowed_ip_cidrs  = var.catalog_allowed_ip_cidrs
-  key_pair_name     = var.catalog_ssh_key_pair_name
-  key_pair_value    = var.catalog_ssh_key_pair_value
-  instance_type     = "t3.micro"
-  DEFAULT_REGION    = "us-east-1"
+  service          = "catalog"
+  vpc_id           = module.catalog_network.service_vpc_id
+  subnet_ids       = module.catalog_network.service_subnet_ids
+  allowed_ip_cidrs = var.catalog_allowed_ip_cidrs
+  key_pair_name    = var.catalog_ssh_key_pair_name
+  key_pair_value   = var.catalog_ssh_key_pair_value
+  instance_type    = "t3.micro"
+  DEFAULT_REGION   = "us-east-1"
 }
 
 module "catalog_database" {
@@ -44,7 +44,7 @@ module "catalog_database" {
     module.catalog_eks.eks_security_group_id,
     module.catalog_bastion.security_group_id,
   ]
-  subnet_group_name = module.catalog_network.service_data_subnet_group_name
+  subnet_group_name   = module.catalog_network.service_data_subnet_group_name
   allow_public_access = false
 }
 
@@ -52,8 +52,8 @@ module "catalog_database" {
 module "catalog_eks" {
   source = "../../modules/eks"
 
-  service        = "catalog"
-  VPC_CIDR_BLOCK = module.catalog_network.service_vpc_cidr_block
+  service             = "catalog"
+  VPC_CIDR_BLOCK      = module.catalog_network.service_vpc_cidr_block
   allow_public_access = false
   VPC_ID              = module.catalog_network.service_vpc_id
   SUBNET_IDS          = module.catalog_network.service_subnet_ids
@@ -64,16 +64,16 @@ module "catalog_eks" {
     max_size     = 3
     min_size     = 1
   }
-  key_pair_name = var.catalog_ssh_key_pair_name
+  key_pair_name             = var.catalog_ssh_key_pair_name
   bastion_security_group_id = module.catalog_bastion.security_group_id
 }
 
 module "catalog_api_gateway" {
   source = "../../modules/api_gateway"
 
-  service = "catalog"
-  region  = "us-east-1"
-  load_balancer_arn  = module.catalog_eks.eks_load_balancer_arn
+  service                    = "catalog"
+  region                     = "us-east-1"
+  load_balancer_arn          = module.catalog_eks.eks_load_balancer_arn
   eks_load_balancer_dns_name = module.catalog_eks.eks_load_balancer_dns_name
 }
 
@@ -90,5 +90,5 @@ module "catalog_k8s" {
   vpc_cidr               = module.catalog_network.service_vpc_cidr_block
   node_security_group_id = module.catalog_eks.eks_node_security_group_id
   nlb_target_group_arn   = module.catalog_eks.nlb_target_group_arn
-  depends_on = [ module.catalog_eks ]
+  depends_on             = [module.catalog_eks]
 }

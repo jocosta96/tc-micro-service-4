@@ -20,7 +20,7 @@ variable "image_name" {
 }
 
 variable "image_tag" {
-  type = string
+  type    = string
   default = "latest"
 }
 variable "vpc_id" {

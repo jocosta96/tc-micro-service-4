@@ -1,5 +1,5 @@
 locals {
-  api_gateway_tags = {"origin": "tc-micro-service-4/modules/api_gateway/main.tf"}
+  api_gateway_tags = { "origin" : "tc-micro-service-4/modules/api_gateway/main.tf" }
 }
 
 
@@ -9,7 +9,7 @@ locals {
 
 resource "aws_api_gateway_rest_api" "api" {
   name = "${var.service}-proxy-api"
-#  body = data.http.open_api_spec.response_body
+  #  body = data.http.open_api_spec.response_body
 }
 
 resource "aws_api_gateway_resource" "proxy" {

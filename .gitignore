@@ -237,4 +237,4 @@ terraform.rc
 #lambda packages
 *.zip
 
-terraform.tfvars
+*.tfvars
