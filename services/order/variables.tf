@@ -13,6 +13,7 @@ variable "order_ssh_key_pair_name" {
 variable "order_ssh_key_pair_value" {
   description = "Name of the EC2 key pair for bastion host SSH access"
   type        = string
+  sensitive   = true
   # No default - must be provided via terraform.tfvars or environment variable
 }
 
