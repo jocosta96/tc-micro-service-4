@@ -24,9 +24,9 @@ variable "order_allowed_ip_cidrs" {
 }
 
 variable "order_app_image_name" {
-  type        = string
+  type = string
 }
 
 variable "order_app_image_tag" {
-  type        = string
+  type = string
 }

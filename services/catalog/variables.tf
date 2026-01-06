@@ -18,11 +18,11 @@ variable "catalog_ssh_key_pair_value" {
 }
 
 variable "catalog_app_image_name" {
-  type        = string
+  type = string
 }
 
 variable "catalog_app_image_tag" {
-  type        = string
+  type = string
 }
 
 variable "catalog_allowed_ip_cidrs" {
