@@ -38,7 +38,7 @@ jobs:
 
       - name: Terraform Apply (Targeted)
         run: |
-          TARGET=module.order_eks.kubectl_manifest.app_deployment
+          TARGET=module.order_k8s.kubectl_manifest.app_deployment
           TF_VAR_order_ssh_key_pair_value=${{ secrets.ORDER_SSH_KEY_PAIR_VALUE }}
           TF_VAR_order_app_image_tag=${{ vars.TF_VAR_order_APP_IMAGE_TAG }}
           TF_VAR_order_app_image_name=${{ vars.TF_VAR_order_APP_IMAGE_NAME }}
