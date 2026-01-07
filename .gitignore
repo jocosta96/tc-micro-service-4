@@ -205,3 +205,36 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+
+# Local .terraform directory
+.terraform/
+
+# .tfstate files and backups (if using local state)
+*.tfstate
+*.tfstate.*
+# If using a consistent naming convention for plan files
+# *.tfplan
+# *tfplan*
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Exclude tfvars files, which may contain sensitive data
+# (consider using environment variables or a secure vault for secrets instead)
+# *.tfvars
+# *.tfvars.json
+
+# Ignore CLI configuration files
+.terraformrc
+terraform.rc
+
+# Optional: ignore graph output files
+# *.dot
+.terraform.lock.hcl
+
+#lambda packages
+*.zip
+
+*.tfvars
