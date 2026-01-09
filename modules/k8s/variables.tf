@@ -40,6 +40,6 @@ variable "nlb_target_group_arn" {
 }
 
 variable "app_command" {
-  type = string
+  type        = string
   description = "command to run on deployment"
 }

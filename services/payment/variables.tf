@@ -33,17 +33,17 @@ variable "payment_allowed_ip_cidrs" {
 
 variable "aws_access_key_id" {
   sensitive = true
-  type = string
+  type      = string
 }
 
 variable "aws_secret_access_key" {
   sensitive = true
-  type = string
+  type      = string
 }
 
 variable "aws_session_token" {
   sensitive = true
-  type = string
+  type      = string
 }
 
 # Store AWS credentials in SSM

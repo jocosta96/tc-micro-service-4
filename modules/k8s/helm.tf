@@ -16,7 +16,7 @@ resource "helm_release" "aws_lb_controller" {
     name  = "vpcId"
     value = var.vpc_id
     }, {
-    name  = "serviceAccount.create" 
+    name  = "serviceAccount.create"
     value = "true" # still create a SA, but controller will use node IAM
   }]
 }

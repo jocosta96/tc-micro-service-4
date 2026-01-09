@@ -149,7 +149,7 @@ resource "local_file" "app_deployment" {
       cfm_name         = local.cfm_name
       target_group_arn = local.target_group_arn
       region           = local.region
-      app_command     = var.app_command
+      app_command      = var.app_command
     }
   )
 

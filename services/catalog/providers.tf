@@ -27,10 +27,10 @@ terraform {
 
 provider "helm" {
   kubernetes = {
-    config_path = terraform_data.refresh_kubectl.input.filename
+    config_path    = terraform_data.refresh_kubectl.input.filename
     config_context = local.service_name
   }
-  
+
 }
 
 provider "aws" {
@@ -48,7 +48,7 @@ provider "kubectl" {
 resource "terraform_data" "refresh_kubectl" {
   input = { filename = "~/.kube/config" }
   provisioner "local-exec" {
-    command = "kubectl config delete-context ${local.service_name}"
+    command    = "kubectl config delete-context ${local.service_name}"
     on_failure = continue
   }
   provisioner "local-exec" {

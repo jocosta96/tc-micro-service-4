@@ -56,6 +56,6 @@ resource "aws_dynamodb_table" "payment_transactions" {
 
   # Tags para organização
   tags = {
-    Name        = var.payment_table_name
+    Name = var.payment_table_name
   }
 }

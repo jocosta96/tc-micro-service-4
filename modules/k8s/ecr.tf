@@ -24,13 +24,13 @@ resource "aws_ecr_pull_through_cache_rule" "dockerhub" {
 
 resource "terraform_data" "ecr_cleanup" {
   triggers_replace = timestamp()
-  input = { "image" = var.image_name, "prefix" = local.prefix }
+  input            = { "image" = var.image_name, "prefix" = local.prefix }
 
   provisioner "local-exec" {
-    command     = "aws ecr delete-repository --repository-name ${self.input.prefix}/${self.input.image} --force"
-    on_failure  = continue
+    command    = "aws ecr delete-repository --repository-name ${self.input.prefix}/${self.input.image} --force"
+    on_failure = continue
   }
-    depends_on = [aws_ecr_pull_through_cache_rule.dockerhub]
+  depends_on = [aws_ecr_pull_through_cache_rule.dockerhub]
 }
 
 resource "aws_ecr_repository_creation_template" "dockerhub_template" {
