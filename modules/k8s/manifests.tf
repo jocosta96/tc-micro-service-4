@@ -123,6 +123,33 @@ resource "kubectl_manifest" "app_deployment" {
       cfm_name         = local.cfm_name
       target_group_arn = local.target_group_arn
       region           = local.region
+      app_command      = var.app_command
+    }
+  )
+
+  depends_on = [
+    kubectl_manifest.app_service,
+    kubectl_manifest.app_secret,
+    kubectl_manifest.database_config,
+    kubectl_manifest.app_hpa,
+    data.aws_ecr_image.service_image
+  ]
+
+}
+
+
+resource "local_file" "app_deployment" {
+
+  filename = "${path.module}/dpm_app.exp"
+  content = templatefile(
+    "${path.module}/manifests/dpm_app.yaml", {
+      dpm_name         = local.dpm_name,
+      dpm_image        = local.dpm_image,
+      app_sec_name     = local.app_sec_name,
+      cfm_name         = local.cfm_name
+      target_group_arn = local.target_group_arn
+      region           = local.region
+      app_command     = var.app_command
     }
   )
 

@@ -23,14 +23,14 @@ resource "aws_ecr_pull_through_cache_rule" "dockerhub" {
 }
 
 resource "terraform_data" "ecr_cleanup" {
+  triggers_replace = timestamp()
   input = { "image" = var.image_name, "prefix" = local.prefix }
 
   provisioner "local-exec" {
-    when    = destroy
-    command = "aws ecr delete-repository --repository-name ${self.input.prefix}/${self.input.image} --force"
+    command     = "aws ecr delete-repository --repository-name ${self.input.prefix}/${self.input.image} --force"
+    on_failure  = continue
   }
-
-  depends_on = [aws_ecr_pull_through_cache_rule.dockerhub]
+    depends_on = [aws_ecr_pull_through_cache_rule.dockerhub]
 }
 
 resource "aws_ecr_repository_creation_template" "dockerhub_template" {
@@ -41,7 +41,7 @@ resource "aws_ecr_repository_creation_template" "dockerhub_template" {
 }
 
 resource "terraform_data" "ecr_warmup" {
-  triggers_replace = [var.image_tag]
+  triggers_replace = timestamp()
 
   provisioner "local-exec" {
     command = <<EOT
@@ -62,7 +62,11 @@ resource "terraform_data" "ecr_warmup" {
     EOT
   }
 
-  depends_on = [aws_ecr_pull_through_cache_rule.dockerhub, aws_ecr_repository_creation_template.dockerhub_template]
+  depends_on = [
+    aws_ecr_pull_through_cache_rule.dockerhub,
+    aws_ecr_repository_creation_template.dockerhub_template,
+    terraform_data.ecr_cleanup
+  ]
 }
 
 

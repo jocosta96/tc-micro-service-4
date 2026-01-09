@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: "${dpm_name}"
+  name: "dpm-catalog"
   namespace: "default"
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: "${dpm_name}"
+      app: "dpm-catalog"
   template:
     metadata:
       labels:
-        app: "${dpm_name}"
+        app: "dpm-catalog"
     spec:
       containers:
         - name: app
-          image: "${dpm_image}"
+          image: "662621393411.dkr.ecr.us-east-1.amazonaws.com/dockerhub/catalog/jocosta96/catalog-microservice@sha256:2cde4aa0358c9fcde9de4e5ccc5c98eac96fde7db6792eb9de104be6b8baf9a2"
           securityContext:
             allowPrivilegeEscalation: false
           ports:
@@ -37,27 +37,27 @@ spec:
             - name: API_PWD
               valueFrom:
                 secretKeyRef:
-                  name: "${app_sec_name}"
+                  name: "sec-app-catalog"
                   key: API_PWD
             - name: API_USER
               valueFrom:
                 secretKeyRef:
-                  name: "${app_sec_name}"
+                  name: "sec-app-catalog"
                   key: API_USER
             - name: DRIVER_NAME
               valueFrom:
                 configMapKeyRef:
-                  name: "${cfm_name}"
+                  name: "cfm-database-catalog"
                   key: DRIVER_NAME
             - name: DEBUG
               valueFrom:
                 configMapKeyRef:
-                  name: "${cfm_name}"
+                  name: "cfm-database-catalog"
                   key: DEBUG
             - name: LOG_LEVEL
               valueFrom:
                 configMapKeyRef:
-                  name: "${cfm_name}"
+                  name: "cfm-database-catalog"
                   key: LOG_LEVEL
           resources:
             requests:
@@ -69,4 +69,8 @@ spec:
           command: ["sh", "-c"]
           args:
             - |
-              ${app_command}
+              #!/bin/sh
+              # Start the app
+              python infra/scripts/database_migration.py init
+              python infra/scripts/init_db.py --sample-data
+              exec uvicorn src.main:app --host 0.0.0.0 --port 8080
