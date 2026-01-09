@@ -1,6 +1,35 @@
 # DynamoDB Table for Payment Service
 # Tabela de transações de pagamento com índices para busca por order_id e provider_tx_id
 
+
+data "aws_caller_identity" "current" {}
+
+resource "aws_kms_key" "service" {
+  description             =  var.service_name
+  enable_key_rotation     = true
+  deletion_window_in_days = 20
+}
+
+resource "aws_kms_key_policy" "service" {
+  key_id = aws_kms_key.service.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Id      = "key-${var.service_name}"
+    Statement = [
+      {
+        Sid    = "Enable IAM User Permissions"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        },
+        Action   = "kms:*"
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+
 resource "aws_dynamodb_table" "payment_transactions" {
   name         = var.payment_table_name
   billing_mode = "PAY_PER_REQUEST" # On-demand billing (sem provisionamento)
@@ -52,6 +81,7 @@ resource "aws_dynamodb_table" "payment_transactions" {
   # Server-side encryption
   server_side_encryption {
     enabled = true
+    kms_key_arn = aws_kms_key.service.arn
   }
 
   # Tags para organização
