@@ -52,18 +52,18 @@ resource "terraform_data" "refresh_kubectl" {
     on_failure = continue
   }
   provisioner "local-exec" {
-    command = "aws eks update-kubeconfig --region ${var.CATALOG_DEFAULT_REGION} --name ${module.catalog_eks.name} --alias ${local.service_name}"
+    command = "aws eks update-kubeconfig --region ${var.PAYMENT_DEFAULT_REGION} --name ${module.payment_eks.name} --alias ${local.service_name}"
   }
   triggers_replace = timestamp()
 }
 
 data "aws_eks_cluster" "cluster" {
-  name       = module.catalog_eks.name
-  depends_on = [module.catalog_eks]
+  name       = module.payment_eks.name
+  depends_on = [module.payment_eks]
 }
 
 data "aws_eks_cluster_auth" "auth" {
-  name       = module.catalog_eks.name
+  name       = module.payment_eks.name
   depends_on = [terraform_data.refresh_kubectl]
 }
 

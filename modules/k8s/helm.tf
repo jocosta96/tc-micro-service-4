@@ -4,6 +4,7 @@ resource "helm_release" "aws_lb_controller" {
   chart      = "aws-load-balancer-controller"
   namespace  = "kube-system"
   version    = "1.16.0"
+  replace    = true # Add replace=true to force replacement of existing release
 
   set = [{
     name  = "clusterName"

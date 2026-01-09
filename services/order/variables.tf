@@ -17,16 +17,16 @@ variable "order_ssh_key_pair_value" {
   # No default - must be provided via terraform.tfvars or environment variable
 }
 
-variable "order_allowed_ip_cidrs" {
-  description = "List of CIDR blocks allowed to access bastion and EKS API (e.g., ['203.0.113.0/24'])"
-  type        = list(string)
-  default     = []
-}
-
 variable "order_app_image_name" {
   type = string
 }
 
 variable "order_app_image_tag" {
   type = string
+}
+
+variable "order_allowed_ip_cidrs" {
+  description = "List of CIDR blocks allowed to access bastion and EKS API (e.g., ['203.0.113.0/24'])"
+  type        = list(string)
+  default     = []
 }

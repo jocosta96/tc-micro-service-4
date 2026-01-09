@@ -38,3 +38,8 @@ variable "node_security_group_id" {
 variable "nlb_target_group_arn" {
   type = string
 }
+
+variable "app_command" {
+  type        = string
+  description = "command to run on deployment"
+}

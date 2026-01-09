@@ -27,8 +27,10 @@ terraform {
 
 provider "helm" {
   kubernetes = {
-    config_path = terraform_data.refresh_kubectl.input.filename
+    config_path    = terraform_data.refresh_kubectl.input.filename
+    config_context = local.service_name
   }
+
 }
 
 provider "aws" {
@@ -40,19 +42,17 @@ provider "kubectl" {
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
   load_config_file       = true
   token                  = data.aws_eks_cluster_auth.auth.token
+  config_context         = local.service_name
 }
-
-#provider "kubernetes" {
-#  host                   = data.aws_eks_cluster.cluster.endpoint
-#  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
-#  token = data.aws_eks_cluster_auth.auth.token
-#}
-
 
 resource "terraform_data" "refresh_kubectl" {
   input = { filename = "~/.kube/config" }
   provisioner "local-exec" {
-    command = "aws eks update-kubeconfig --region ${var.ORDER_DEFAULT_REGION} --name ${module.order_eks.name} --alias order-cluster"
+    command    = "kubectl config delete-context ${local.service_name}"
+    on_failure = continue
+  }
+  provisioner "local-exec" {
+    command = "aws eks update-kubeconfig --region ${var.ORDER_DEFAULT_REGION} --name ${module.order_eks.name} --alias ${local.service_name}"
   }
   triggers_replace = timestamp()
 }
@@ -63,9 +63,8 @@ data "aws_eks_cluster" "cluster" {
 }
 
 data "aws_eks_cluster_auth" "auth" {
-  name       = "order-eks-cluster"
+  name       = module.order_eks.name
   depends_on = [terraform_data.refresh_kubectl]
 }
-
 
 provider "time" {}

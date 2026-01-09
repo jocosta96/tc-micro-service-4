@@ -1,0 +1,45 @@
+name: "payment-microservice-targeted-update"
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+env:
+  TF_VERSION: "1.14.1"
+
+jobs:
+  targeted_image_update:
+    name: "Targeted App Deployment Update"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./services/payment
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Terraform Init (Targeted)
+        run: |
+          terraform init -upgrade -reconfigure
+
+      - name: Terraform Apply (Targeted)
+        run: |
+          TARGET=module.payment_k8s.kubectl_manifest.app_deployment
+          TF_VAR_payment_ssh_key_pair_value=${{ secrets.PAYMENT_SSH_KEY_PAIR_VALUE }}
+          TF_VAR_payment_app_image_tag=${{ vars.TF_VAR_PAYMENT_APP_IMAGE_TAG }}
+          TF_VAR_payment_app_image_name=${{ vars.TF_VAR_PAYMENT_APP_IMAGE_NAME }}
+          terraform apply -auto-approve -target=${TARGET}
