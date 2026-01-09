@@ -16,7 +16,7 @@ resource "aws_subnet" "ordering_subnet" {
   count                   = var.SUBNET_COUNT
   vpc_id                  = aws_vpc.ordering_vpc.id
   cidr_block              = cidrsubnet(var.VPC_CIDR_BLOCK, 4, count.index)
-  map_public_ip_on_launch = false
+  map_public_ip_on_launch = true
   availability_zone       = var.AVAILABILITY_ZONES[count.index]
 }
 
@@ -26,6 +26,7 @@ resource "aws_subnet" "database_subnet" {
   vpc_id            = aws_vpc.ordering_vpc.id
   cidr_block        = cidrsubnet(var.VPC_CIDR_BLOCK, 4, 15 - count.index) #total subnets is 16, going on reversal order
   availability_zone = var.AVAILABILITY_ZONES[count.index]
+  map_public_ip_on_launch = true
 }
 
 resource "aws_db_subnet_group" "ordering_data_subnet_group" {
@@ -67,8 +68,13 @@ resource "aws_route_table" "ordering_private_route_table" {
     cidr_block = aws_vpc.ordering_vpc.cidr_block
     gateway_id = "local"
   }
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.ordering_igw.id
+  }
   # No route to Internet Gateway - database subnets are private
 }
+
 
 # Associate database subnets with private route table (no internet access)
 resource "aws_route_table_association" "database_route_table_association" {
