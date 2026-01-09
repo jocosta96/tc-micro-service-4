@@ -26,7 +26,7 @@ env:
   GH_REF_NAME: ${{ github.ref_name }}
   TF_VAR_catalog_ssh_key_pair_value: ${{ secrets.CATALOG_SSH_KEY_PAIR_VALUE }}
   TF_VAR_catalog_app_image_tag: ${{ vars.TF_VAR_CATALOG_APP_IMAGE_TAG }}
-  TF_VAR_catalog_app_image_name: ${{ vars.TF_VAR_CATALOG_APP_IMAGE_NAMW }}
+  TF_VAR_catalog_app_image_name: ${{ vars.TF_VAR_CATALOG_APP_IMAGE_NAME }}
   TF_VAR_aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
   TF_VAR_aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   TF_VAR_aws_session_token: ${{ secrets.AWS_SESSION_TOKEN }}
