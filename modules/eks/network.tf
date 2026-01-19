@@ -28,7 +28,7 @@ locals {
   eks_managed_sg = data.aws_eks_cluster.cluster.vpc_config[0].cluster_security_group_id
 
   # Deduplicate IPs using setsubtract to avoid duplicate rules
-  unique_allowed_cidrs = setsubtract(var.allowed_ip_cidrs, [local.deployer_cidr])
+  unique_allowed_cidrs = tolist(setsubtract(var.allowed_ip_cidrs, [local.deployer_cidr]))
   all_allowed_cidrs = concat([local.deployer_cidr], local.unique_allowed_cidrs)
 }
 
