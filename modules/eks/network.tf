@@ -23,10 +23,13 @@ locals {
     origin = "tc-micro-service-4/modules/eks/network.tf"
   }
 
-  deployer_cidr  = length(var.allowed_ip_cidrs) > 0 ? var.allowed_ip_cidrs[0] : "${chomp(data.http.my_ip.response_body)}/32"
+  # Always get current IP - works for both local and GitHub Actions
+  deployer_cidr = "${chomp(data.http.my_ip.response_body)}/32"
   eks_managed_sg = data.aws_eks_cluster.cluster.vpc_config[0].cluster_security_group_id
 
-  allowed_ip_cidrs = flatten(concat(var.allowed_ip_cidrs, [local.deployer_cidr]))
+  # Deduplicate IPs using setsubtract to avoid duplicate rules
+  unique_allowed_cidrs = tolist(setsubtract(var.allowed_ip_cidrs, [local.deployer_cidr]))
+  all_allowed_cidrs = concat([local.deployer_cidr], local.unique_allowed_cidrs)
 }
 
 ############################
@@ -174,9 +177,8 @@ resource "aws_vpc_security_group_ingress_rule" "nlb_to_eks_cluster" {
 # External Ingress
 ############################
 
-resource "aws_vpc_security_group_ingress_rule" "eks_api_public" {
-  count = length(local.allowed_ip_cidrs) > 0 ? 1 : 0
-
+# Allow current deployer IP for EKS API access
+resource "aws_vpc_security_group_ingress_rule" "eks_api_deployer" {
   security_group_id = aws_security_group.ordering_eks_cluster_sg.id
   cidr_ipv4         = local.deployer_cidr
   from_port         = 443
@@ -184,13 +186,28 @@ resource "aws_vpc_security_group_ingress_rule" "eks_api_public" {
   ip_protocol       = "tcp"
 
   tags = merge(local.network_tags, {
-    name = "${var.service}-eks-api-public"
+    name = "${var.service}-eks-api-deployer"
+  })
+}
+
+# Allow additional configured IPs (excluding deployer IP to avoid duplicates)
+resource "aws_vpc_security_group_ingress_rule" "eks_api_additional" {
+  count = length(local.unique_allowed_cidrs)
+
+  security_group_id = aws_security_group.ordering_eks_cluster_sg.id
+  cidr_ipv4         = local.unique_allowed_cidrs[count.index]
+  from_port         = 443
+  to_port           = 443
+  ip_protocol       = "tcp"
+
+  tags = merge(local.network_tags, {
+    name = "${var.service}-eks-api-additional-${count.index}"
   })
 }
 
 # Optional: NodePort access (dev only)
 resource "aws_vpc_security_group_ingress_rule" "eks_nodes_nodeport_dev" {
-  count = length(local.allowed_ip_cidrs) > 0 ? 1 : 0
+  count = length(local.all_allowed_cidrs) > 0 ? 1 : 0
 
   security_group_id = aws_security_group.ordering_eks_node_sg.id
   cidr_ipv4         = local.deployer_cidr
@@ -205,7 +222,7 @@ resource "aws_vpc_security_group_ingress_rule" "eks_nodes_nodeport_dev" {
 
 # Optional: NLB access (dev only)
 resource "aws_vpc_security_group_ingress_rule" "nlb_dev" {
-  count = length(local.allowed_ip_cidrs) > 0 ? 1 : 0
+  count = length(local.all_allowed_cidrs) > 0 ? 1 : 0
 
   security_group_id = aws_security_group.nlb_sg.id
   cidr_ipv4         = local.deployer_cidr

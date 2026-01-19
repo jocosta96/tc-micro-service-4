@@ -25,8 +25,8 @@ resource "aws_eks_cluster" "ordering_eks_cluster" {
       aws_security_group.ordering_eks_node_sg.id
     ]
     endpoint_private_access = true
-    endpoint_public_access  = length(local.allowed_ip_cidrs) > 0
-    public_access_cidrs     = length(local.allowed_ip_cidrs) > 0 ? local.allowed_ip_cidrs : []
+    endpoint_public_access  = length(local.all_allowed_cidrs) > 0
+    public_access_cidrs     = length(local.all_allowed_cidrs) > 0 ? local.all_allowed_cidrs : []
   }
 
   tags = local.eks_tags
