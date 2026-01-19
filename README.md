@@ -1,4 +1,4 @@
-# TC Microservice 4 - Ordering System Infrastructure
+# TC Microservice 4 - Ordering System Infrastructure.
 
 ## Overview
 This repository contains Terraform Infrastructure as Code (IaC) for a microservices-based ordering system deployed on AWS. The architecture follows a modular approach with separate services for catalog, order, and payment processing.

@@ -15,7 +15,7 @@ data "aws_iam_role" "node_role" {
 }
 
 data "aws_iam_role" "cluster_role" {
-  name = "c190909a4920103l13290273t1w662621-LabEksClusterRole-W1aKy5YEmwff"
+  name = "c194537a4993920l13518372t1w092649-LabEksClusterRole-YOsRVAob9p16"
 }
 
 # Get current AWS caller identity

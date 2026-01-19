@@ -5,16 +5,16 @@ on:
     branches:
       - main
     paths:
-      - 'modules/*.tf'
+      - 'modules/**/*.tf'
       - 'services/catalog/*.tf'
-      - '.github/workflows/deploy_catalog_infra.yml'
+      - '.github/workflows/catalog_infra_deploy.yml'
   pull_request:
     branches:
       - main
     paths:
-      - 'modules/*.tf'
+      - 'modules/**/*.tf'
       - 'services/catalog/*.tf'
-      - '.github/workflows/deploy_catalog_infra.yml'
+      - '.github/workflows/catalog_infra_deploy.yml'
 
 env:
   TF_VERSION: "1.14.1"
