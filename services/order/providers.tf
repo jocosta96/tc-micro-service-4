@@ -27,10 +27,10 @@ terraform {
 
 provider "helm" {
   kubernetes = {
-    config_path    = terraform_data.refresh_kubectl.input.filename
-    config_context = local.service_name
+    host                   = data.aws_eks_cluster.cluster.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
+    token                  = data.aws_eks_cluster_auth.auth.token
   }
-
 }
 
 provider "aws" {
@@ -40,9 +40,8 @@ provider "aws" {
 provider "kubectl" {
   host                   = data.aws_eks_cluster.cluster.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
-  load_config_file       = true
+  load_config_file       = false
   token                  = data.aws_eks_cluster_auth.auth.token
-  config_context         = local.service_name
 }
 
 resource "terraform_data" "refresh_kubectl" {
