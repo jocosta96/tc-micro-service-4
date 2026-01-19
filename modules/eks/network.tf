@@ -190,6 +190,18 @@ resource "aws_vpc_security_group_ingress_rule" "eks_api_deployer" {
   })
 }
 
+resource "aws_ssm_parameter" "eks_security_group_id" {
+  name  = "/${var.service}/eks/security-group-id"
+  type  = "String"
+  value = aws_security_group.ordering_eks_cluster_sg.id
+
+  tags = {
+    service = var.service
+    origin  = "eks-module"
+  }
+}
+
+
 # Allow additional configured IPs (excluding deployer IP to avoid duplicates)
 resource "aws_vpc_security_group_ingress_rule" "eks_api_additional" {
   count = length(local.unique_allowed_cidrs)

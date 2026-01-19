@@ -65,6 +65,12 @@ jobs:
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
           role-duration-seconds: 3600
 
+      - name: Add IP to EKS Security Group
+        working-directory: .github
+        run: |
+          chmod +x ./scripts/eks_whitelist.sh
+          ./scripts/eks_whitelist.sh catalog us-east-1
+
       - name: Verify AWS Credentials
         run: |
           echo "Testing AWS credentials..."

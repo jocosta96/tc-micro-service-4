@@ -32,6 +32,12 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
+      - name: Add IP to EKS Security Group
+        working-directory: .github
+        run: |
+          chmod +x ./scripts/eks_whitelist.sh
+          ./scripts/eks_whitelist.sh order us-east-1
+
       - name: Terraform Init (Targeted)
         run: |
           terraform init -upgrade -reconfigure
