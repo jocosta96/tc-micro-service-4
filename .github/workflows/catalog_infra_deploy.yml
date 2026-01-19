@@ -5,14 +5,14 @@ on:
     branches:
       - main
     paths:
-      - 'modules/*.tf'
+      - 'modules/**/*.tf'
       - 'services/catalog/*.tf'
       - '.github/workflows/catalog_infra_deploy.yml'
   pull_request:
     branches:
       - main
     paths:
-      - 'modules/*.tf'
+      - 'modules/**/*.tf'
       - 'services/catalog/*.tf'
       - '.github/workflows/catalog_infra_deploy.yml'
 
